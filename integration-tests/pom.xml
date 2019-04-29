@@ -53,6 +53,7 @@
         <module>infinispan-cache-jpa</module>
         <module>elytron-security</module>
         <module>camel-core</module>
+        <module>camel-undertow</module>
         <module>camel-salesforce</module>
         <module>camel-aws-s3</module>
         <module>flyway</module>
