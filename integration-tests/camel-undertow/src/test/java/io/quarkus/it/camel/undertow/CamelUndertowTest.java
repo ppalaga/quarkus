@@ -20,4 +20,15 @@ public class CamelUndertowTest {
         RestAssured.when().get("/hello").then().body(is("Hello"));
     }
 
+    @Test
+    public void stockServlet() throws Exception {
+        RestAssured.when().get("/stock-servlet").then().body(is("GET /stock-servlet"));
+        RestAssured.when().get("/stock-servlet/sub-path").then().body(is("GET /stock-servlet/sub-path"));
+    }
+
+    @Test
+    public void badPath() throws Exception {
+        RestAssured.when().get("/non-existent-path").then().statusCode(404);
+    }
+
 }
