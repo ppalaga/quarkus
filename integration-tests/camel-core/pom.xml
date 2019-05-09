@@ -157,6 +157,7 @@
                                     <graalvmHome>${graalvmHome}</graalvmHome>
                                     <enableJni>false</enableJni>
                                     <disableReports>false</disableReports>
+                                    <additionalBuildArgs>-H:+ReportExceptionStackTraces</additionalBuildArgs>
                                 </configuration>
                             </execution>
                         </executions>
