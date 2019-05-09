@@ -116,7 +116,7 @@
             <id>native-image</id>
             <activation>
                 <property>
-                    <name>native-camel</name>
+                    <name>native</name>
                 </property>
             </activation>
             <build>
@@ -156,7 +156,8 @@
                                     <dumpProxies>false</dumpProxies>
                                     <graalvmHome>${graalvmHome}</graalvmHome>
                                     <enableJni>false</enableJni>
-                                    <disableReports>true</disableReports>
+                                    <disableReports>false</disableReports>
+                                    <additionalBuildArgs>-H:+ReportExceptionStackTraces</additionalBuildArgs>
                                 </configuration>
                             </execution>
                         </executions>
