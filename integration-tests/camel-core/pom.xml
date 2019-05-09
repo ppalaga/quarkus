@@ -156,7 +156,7 @@
                                     <dumpProxies>false</dumpProxies>
                                     <graalvmHome>${graalvmHome}</graalvmHome>
                                     <enableJni>false</enableJni>
-                                    <disableReports>true</disableReports>
+                                    <disableReports>false</disableReports>
                                 </configuration>
                             </execution>
                         </executions>
