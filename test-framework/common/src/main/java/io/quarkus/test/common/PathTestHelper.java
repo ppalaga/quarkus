@@ -1,6 +1,8 @@
 package io.quarkus.test.common;
 
 import java.io.File;
+import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Path;
@@ -35,10 +37,21 @@ public final class PathTestHelper {
         String classFileName = testClass.getName().replace('.', File.separatorChar) + ".class";
         URL resource = testClass.getClassLoader().getResource(classFileName);
 
-        if (!isInTestDir(resource)) {
-            throw new RuntimeException(
-                    "The test class " + testClass + " is not located in any of the directories "
-                            + TEST_TO_MAIN_DIR_FRAGMENTS.keySet());
+        /*
+         * if (!isInTestDir(resource)) {
+         * throw new RuntimeException("The test class " + testClass + " is not located in any of the directories "
+         * + TEST_TO_MAIN_DIR_FRAGMENTS.keySet());
+         * }
+         */
+
+        if (resource.getProtocol().equals("jar")) {
+            try {
+                resource = URI.create(resource.getFile().substring(0, resource.getFile().indexOf('!'))).toURL();
+                return toPath(resource);
+            } catch (MalformedURLException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
         }
 
         Path path = toPath(resource);
@@ -47,6 +60,12 @@ public final class PathTestHelper {
 
     public static Path getAppClassLocation(Class<?> testClass) {
         String testClassPath = getTestClassesLocation(testClass).toString();
+        if (testClassPath.endsWith(".jar")) {
+            if (testClassPath.endsWith("-tests.jar")) {
+                return Paths.get(testClassPath.substring(0, testClassPath.length() - "-tests.jar".length()) + ".jar");
+            }
+            return Paths.get(testClassPath);
+        }
         return TEST_TO_MAIN_DIR_FRAGMENTS.entrySet().stream()
                 .filter(e -> testClassPath.contains(e.getKey()))
                 .map(e -> Paths.get(testClassPath.replace(e.getKey(), e.getValue())))

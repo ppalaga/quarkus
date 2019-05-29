@@ -121,26 +121,40 @@ public class BootstrapAppModelResolver implements AppModelResolver {
     @Override
     public AppModel resolveModel(AppArtifact appArtifact) throws AppModelResolverException {
         return devmode ? injectDeploymentDependencies(appArtifact,
-                mvn.resolveDependencies(toAetherArtifact(appArtifact), "test").getRoot())
-                : doResolveModel(appArtifact, Collections.emptyList());
+                mvn.resolveDependencies(toAetherArtifact(appArtifact), "test").getRoot(), Collections.emptyList())
+                : doResolveModel(appArtifact, Collections.emptyList(), Collections.emptyList());
     }
 
     @Override
     public AppModel resolveModel(AppArtifact appArtifact, List<AppDependency> directDeps) throws AppModelResolverException {
-        final List<Dependency> mvnDeps;
-        if(directDeps.isEmpty()) {
-            mvnDeps = Collections.emptyList();
-        } else {
-            mvnDeps = new ArrayList<>(directDeps.size());
-            for (AppDependency dep : directDeps) {
-                mvnDeps.add(new Dependency(toAetherArtifact(dep.getArtifact()), dep.getScope()));
-            }
-        }
-        return doResolveModel(appArtifact, mvnDeps);
+        return resolveManagedModel(appArtifact, directDeps, Collections.emptyList());
     }
 
-    private AppModel doResolveModel(AppArtifact appArtifact, final List<Dependency> directMvnDeps) throws AppModelResolverException {
-        return injectDeploymentDependencies(appArtifact, mvn.resolveDependencies(toAetherArtifact(appArtifact), directMvnDeps).getRoot());
+    public AppModel resolveManagedModel(AppArtifact appArtifact, List<AppDependency> directDeps, List<AppDependency> managedDeps) throws AppModelResolverException {
+        final List<Dependency> directMvnDeps;
+        if(directDeps.isEmpty()) {
+            directMvnDeps = Collections.emptyList();
+        } else {
+            directMvnDeps = new ArrayList<>(directDeps.size());
+            for (AppDependency dep : directDeps) {
+                directMvnDeps.add(new Dependency(toAetherArtifact(dep.getArtifact()), dep.getScope()));
+            }
+        }
+        final List<Dependency> managedMvnDeps;
+        if(managedDeps.isEmpty()) {
+            managedMvnDeps = Collections.emptyList();
+        } else {
+            managedMvnDeps = new ArrayList<>(managedDeps.size());
+            for (AppDependency dep : managedDeps) {
+                managedMvnDeps.add(new Dependency(toAetherArtifact(dep.getArtifact()), dep.getScope()));
+            }
+        }
+        return doResolveModel(appArtifact, directMvnDeps, managedMvnDeps);
+    }
+
+    private AppModel doResolveModel(AppArtifact appArtifact, final List<Dependency> directMvnDeps, List<Dependency> managedDeps) throws AppModelResolverException {
+        return injectDeploymentDependencies(appArtifact, mvn.resolveManagedDependencies(toAetherArtifact(appArtifact),
+                directMvnDeps, managedDeps, devmode ? new String[] { "test" } : new String[0]).getRoot(), managedDeps);
     }
 
     @Override
@@ -197,7 +211,7 @@ public class BootstrapAppModelResolver implements AppModelResolver {
                 appArtifact.getType(), appArtifact.getVersion(), Collections.emptyMap(), localPath.toFile()));
     }
 
-    private AppModel injectDeploymentDependencies(AppArtifact appArtifact, DependencyNode root) throws AppModelResolverException {
+    private AppModel injectDeploymentDependencies(AppArtifact appArtifact, DependencyNode root, List<Dependency> managedDeps) throws AppModelResolverException {
 
         final Set<AppArtifactKey> appDeps = new HashSet<>();
         final List<AppDependency> userDeps = new ArrayList<>();
@@ -221,7 +235,7 @@ public class BootstrapAppModelResolver implements AppModelResolver {
             child.accept(visitor);
         }
 
-        final DeploymentInjectingDependencyVisitor deploymentInjector = new DeploymentInjectingDependencyVisitor(mvn);
+        final DeploymentInjectingDependencyVisitor deploymentInjector = new DeploymentInjectingDependencyVisitor(mvn, managedDeps);
         try {
             root.accept(new TreeDependencyVisitor(deploymentInjector));
         } catch (DeploymentInjectionException e) {

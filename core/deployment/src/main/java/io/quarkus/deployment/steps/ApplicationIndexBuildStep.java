@@ -2,6 +2,8 @@ package io.quarkus.deployment.steps;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.FileSystem;
+import java.nio.file.FileSystems;
 import java.nio.file.FileVisitResult;
 import java.nio.file.FileVisitor;
 import java.nio.file.Files;
@@ -21,7 +23,22 @@ public class ApplicationIndexBuildStep {
     ApplicationIndexBuildItem build(ArchiveRootBuildItem root) throws IOException {
 
         Indexer indexer = new Indexer();
-        Files.walkFileTree(root.getPath(), new FileVisitor<Path>() {
+        Path rootPath = root.getPath();
+        if (Files.isDirectory(rootPath)) {
+            indexAppClasses(indexer, rootPath);
+        } else {
+            try (FileSystem fs = FileSystems.newFileSystem(rootPath, null)) {
+                for (Path p : fs.getRootDirectories()) {
+                    indexAppClasses(indexer, p);
+                }
+            }
+        }
+        Index appIndex = indexer.complete();
+        return new ApplicationIndexBuildItem(appIndex);
+    }
+
+    private void indexAppClasses(Indexer indexer, Path rootPath) throws IOException {
+        Files.walkFileTree(rootPath, new FileVisitor<Path>() {
             @Override
             public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
                 return FileVisitResult.CONTINUE;
@@ -47,8 +64,6 @@ public class ApplicationIndexBuildStep {
                 return FileVisitResult.CONTINUE;
             }
         });
-        Index appIndex = indexer.complete();
-        return new ApplicationIndexBuildItem(appIndex);
     }
 
 }

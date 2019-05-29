@@ -8,17 +8,23 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
+import org.eclipse.aether.artifact.DefaultArtifact;
+import org.eclipse.aether.graph.Dependency;
 import org.jboss.logging.Logger;
 
+import io.quarkus.bootstrap.model.AppArtifact;
 import io.quarkus.bootstrap.model.AppDependency;
 import io.quarkus.bootstrap.model.AppModel;
 import io.quarkus.bootstrap.resolver.AppModelResolverException;
 import io.quarkus.bootstrap.resolver.BootstrapAppModelResolver;
 import io.quarkus.bootstrap.resolver.maven.MavenArtifactResolver;
 import io.quarkus.bootstrap.resolver.maven.workspace.LocalProject;
+import io.quarkus.bootstrap.resolver.maven.workspace.ModelUtils;
 
 /**
  *
@@ -110,6 +116,7 @@ public class BootstrapClassLoaderFactory {
     private boolean localProjectsDiscovery;
     private Boolean offline;
     private boolean enableClasspathCache;
+    private List<AppDependency> managedDeps = Collections.emptyList();
 
     private BootstrapClassLoaderFactory() {
     }
@@ -144,6 +151,11 @@ public class BootstrapClassLoaderFactory {
         return this;
     }
 
+    public BootstrapClassLoaderFactory setManagedDependencies(List<AppDependency> managedDeps) {
+        this.managedDeps = managedDeps;
+        return this;
+    }
+
     /**
      * WARNING: this method is creating a classloader by resolving all the dependencies on every call,
      * without consulting the cache.
@@ -170,7 +182,7 @@ public class BootstrapClassLoaderFactory {
             } else {
                 localProject = LocalProject.load(appClasses);
             }
-            final AppModel appModel = new BootstrapAppModelResolver(mvnBuilder.build()).resolveModel(localProject.getAppArtifact());
+            final AppModel appModel = new BootstrapAppModelResolver(mvnBuilder.build()).resolveManagedModel(localProject.getAppArtifact(), Collections.emptyList(), managedDeps);
             if (hierarchical) {
                 final URLClassLoader cl = initAppCp(appModel.getUserDependencies());
                 try {
@@ -205,6 +217,65 @@ public class BootstrapClassLoaderFactory {
             throw new IllegalArgumentException("Application classes path has not been set");
         }
         final URLClassLoader ucl;
+
+        if(!Files.isDirectory(appClasses)) {
+            try {
+                final MavenArtifactResolver.Builder mvnBuilder = MavenArtifactResolver.builder();
+                if (offline != null) {
+                    mvnBuilder.setOffline(offline);
+                }
+                LocalProject localProject = null;
+                final Path currentPath = Paths.get("").normalize().toAbsolutePath();
+                if (localProjectsDiscovery && Files.exists(currentPath.resolve("pom.xml"))) {
+                    try {
+                        localProject = LocalProject.loadWorkspace(currentPath);
+                        mvnBuilder.setWorkspace(localProject.getWorkspace());
+                    } catch (BootstrapException e) {
+                        e.printStackTrace();
+                    }
+                }
+                final MavenArtifactResolver mvn = mvnBuilder.build();
+                List<AppDependency> managedDeps = Collections.emptyList();
+                if (localProject != null) {
+                    final List<Dependency> aetherDeps = mvn.resolveDescriptor(new DefaultArtifact(
+                            localProject.getAppArtifact().getGroupId(),
+                            localProject.getAppArtifact().getArtifactId(),
+                            localProject.getAppArtifact().getClassifier(),
+                            localProject.getAppArtifact().getType(),
+                            localProject.getAppArtifact().getVersion()))
+                            .getManagedDependencies();
+                    managedDeps = new ArrayList<>(aetherDeps.size());
+                    for(Dependency aetherDep : aetherDeps) {
+                        managedDeps.add(new AppDependency(new AppArtifact(
+                                aetherDep.getArtifact().getGroupId(),
+                                aetherDep.getArtifact().getArtifactId(),
+                                aetherDep.getArtifact().getClassifier(),
+                                aetherDep.getArtifact().getExtension(),
+                                aetherDep.getArtifact().getVersion()
+                                ),
+                                aetherDep.getScope(), aetherDep.isOptional()));
+                    }
+                }
+
+                final List<AppDependency> deploymentDeps = new BootstrapAppModelResolver(mvnBuilder.build())
+                        .resolveManagedModel(ModelUtils.resolveAppArtifact(appClasses), Collections.emptyList(), managedDeps)
+                        .getDeploymentDependencies();
+                final URL[] urls;
+                if(appCp.isEmpty()) {
+                    urls = toURLs(deploymentDeps);
+                } else {
+                    urls = new URL[deploymentDeps.size() + appCp.size()];
+                    addDeps(urls,
+                            addPaths(urls, 0, appCp),
+                            deploymentDeps);
+                }
+                return new URLClassLoader(urls, parent);
+            } catch (Exception e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+        }
+
         Path cachedCpPath = null;
         final LocalProject localProject = localProjectsDiscovery || enableClasspathCache
                 ? LocalProject.loadWorkspace(appClasses)
@@ -253,7 +324,9 @@ public class BootstrapClassLoaderFactory {
             if (offline != null) {
                 mvn.setOffline(offline);
             }
-            final List<AppDependency> deploymentDeps = new BootstrapAppModelResolver(mvn.build()).resolveModel(localProject.getAppArtifact()).getDeploymentDependencies();
+            final List<AppDependency> deploymentDeps = new BootstrapAppModelResolver(mvn.build())
+                    .resolveManagedModel(localProject.getAppArtifact(), Collections.emptyList(), managedDeps)
+                    .getDeploymentDependencies();
             final URL[] urls;
             if(appCp.isEmpty()) {
                 urls = toURLs(deploymentDeps);
