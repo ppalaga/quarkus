@@ -53,6 +53,7 @@
         <module>neo4j</module>
         <module>mongodb-client</module>
         <module>resteasy-jackson</module>
+        <module>vertx-web</module>
     </modules>
 
     <build>
