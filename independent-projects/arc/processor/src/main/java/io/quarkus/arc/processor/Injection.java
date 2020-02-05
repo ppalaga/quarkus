@@ -5,6 +5,7 @@ import static io.quarkus.arc.processor.IndexClassLookupUtils.getClassByName;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -47,7 +48,7 @@ public class Injection {
             List<Injection> injections = new ArrayList<>();
             forClassBean(beanTarget.asClass(), beanTarget.asClass(), beanDeployment, injections, transformer, false);
             Set<AnnotationTarget> injectConstructors = injections.stream().filter(Injection::isConstructor)
-                    .map(Injection::getTarget).collect(Collectors.toSet());
+                    .map(Injection::getTarget).collect(Collectors.toCollection(LinkedHashSet::new));
             if (injectConstructors.size() > 1) {
                 throw new DefinitionException(
                         "Multiple @Inject constructors found on " + beanTarget.asClass().name() + ":\n"
