@@ -16,7 +16,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Enumeration;
 import java.util.HashMap;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -83,7 +83,7 @@ public class ApplicationArchiveBuildStep {
             List<IndexDependencyBuildItem> indexDependencyBuildItems,
             LiveReloadBuildItem liveReloadContext) throws IOException {
 
-        Set<String> markerFiles = new HashSet<>();
+        Set<String> markerFiles = new LinkedHashSet<>();
         for (AdditionalApplicationArchiveMarkerBuildItem i : appMarkers) {
             markerFiles.add(i.getFile());
         }
@@ -105,13 +105,13 @@ public class ApplicationArchiveBuildStep {
             ArchiveRootBuildItem root, List<AdditionalApplicationArchiveBuildItem> additionalApplicationArchives,
             List<IndexDependencyBuildItem> indexDependencyBuildItem, IndexCache indexCache)
             throws IOException {
-        Set<Path> dependenciesToIndex = new HashSet<>();
+        Set<Path> dependenciesToIndex = new LinkedHashSet<>();
         //get paths that are included via index-dependencies
-        dependenciesToIndex.addAll(getIndexDependencyPaths(indexDependencyBuildItem, classLoader, root));
+        addIndexDependencyPaths(indexDependencyBuildItem, classLoader, root, dependenciesToIndex);
         //get paths that are included via marker files
-        Set<String> markers = new HashSet<>(applicationArchiveFiles);
+        Set<String> markers = new LinkedHashSet<>(applicationArchiveFiles);
         markers.add(JANDEX_INDEX);
-        dependenciesToIndex.addAll(getMarkerFilePaths(classLoader, markers, root));
+        addMarkerFilePaths(classLoader, markers, root, dependenciesToIndex);
 
         //we don't index the application root, this is handled elsewhere
         dependenciesToIndex.remove(root.getArchiveLocation());
@@ -123,12 +123,10 @@ public class ApplicationArchiveBuildStep {
         return indexPaths(dependenciesToIndex, classLoader, indexCache);
     }
 
-    public List<Path> getIndexDependencyPaths(List<IndexDependencyBuildItem> indexDependencyBuildItems,
-            ClassLoader classLoader, ArchiveRootBuildItem root) {
+    public static void addIndexDependencyPaths(List<IndexDependencyBuildItem> indexDependencyBuildItems,
+            ClassLoader classLoader, ArchiveRootBuildItem root, Collection<Path> destination) {
         ArtifactIndex artifactIndex = new ArtifactIndex(new ClassPathArtifactResolver(classLoader));
         try {
-            List<Path> ret = new ArrayList<>();
-
             for (IndexDependencyBuildItem indexDependencyBuildItem : indexDependencyBuildItems) {
                 Path path;
                 String classifier = indexDependencyBuildItem.getClassifier();
@@ -140,10 +138,9 @@ public class ApplicationArchiveBuildStep {
                             indexDependencyBuildItem.getArtifactId(), classifier);
                 }
                 if (!root.isExcludedFromIndexing(path)) {
-                    ret.add(path);
+                    destination.add(path);
                 }
             }
-            return ret;
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -169,21 +166,19 @@ public class ApplicationArchiveBuildStep {
         return ret;
     }
 
-    private static Collection<? extends Path> getMarkerFilePaths(ClassLoader classLoader, Set<String> applicationArchiveFiles,
-            ArchiveRootBuildItem root)
+    private static void addMarkerFilePaths(ClassLoader classLoader, Set<String> applicationArchiveFiles,
+            ArchiveRootBuildItem root, Collection<Path> destination)
             throws IOException {
-        List<Path> ret = new ArrayList<>();
         for (String file : applicationArchiveFiles) {
             Enumeration<URL> e = classLoader.getResources(file);
             while (e.hasMoreElements()) {
                 final URL url = e.nextElement();
                 final Path path = urlToPath(url, file);
                 if (!root.isExcludedFromIndexing(path)) {
-                    ret.add(path);
+                    destination.add(path);
                 }
             }
         }
-        return ret;
     }
 
     // package protected for testing purpose
