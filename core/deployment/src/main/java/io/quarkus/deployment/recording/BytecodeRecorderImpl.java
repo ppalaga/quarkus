@@ -46,6 +46,7 @@ import io.quarkus.deployment.proxy.ProxyConfiguration;
 import io.quarkus.deployment.proxy.ProxyFactory;
 import io.quarkus.deployment.recording.AnnotationProxyProvider.AnnotationProxy;
 import io.quarkus.deployment.recording.PropertyUtils.Property;
+import io.quarkus.deployment.util.HashUtil;
 import io.quarkus.gizmo.AssignableResultHandle;
 import io.quarkus.gizmo.BytecodeCreator;
 import io.quarkus.gizmo.CatchBlockCreator;
@@ -88,7 +89,6 @@ public class BytecodeRecorderImpl implements RecorderContext {
     private static final Class<?> SINGLETON_MAP_CLASS = Collections.singletonMap(1, 1).getClass();
 
     private static final AtomicInteger COUNT = new AtomicInteger();
-    private static final AtomicInteger OUTPUT_COUNT = new AtomicInteger();
     private static final String BASE_PACKAGE = "io.quarkus.deployment.steps.";
 
     private static final String PROXY_KEY = "proxykey";
@@ -107,6 +107,7 @@ public class BytecodeRecorderImpl implements RecorderContext {
     private final Map<Class<?>, SubstitutionHolder> substitutions = new HashMap<>();
     private final Map<Class<?>, NonDefaultConstructorHolder> nonDefaultConstructors = new HashMap<>();
     private final String className;
+    private final String classId;
 
     private final List<ObjectLoader> loaders = new ArrayList<>();
 
@@ -121,16 +122,18 @@ public class BytecodeRecorderImpl implements RecorderContext {
 
     private int deferredParameterCount = 0;
     private boolean loadComplete;
+    private int proxyCount = 0;
 
     public BytecodeRecorderImpl(ClassLoader classLoader, boolean staticInit, String className) {
         this.classLoader = classLoader;
         this.staticInit = staticInit;
         this.className = className;
+        this.classId = HashUtil.sha1(className);
     }
 
-    public BytecodeRecorderImpl(boolean staticInit, String buildStepName, String methodName) {
+    public BytecodeRecorderImpl(boolean staticInit, String buildStepName, Method method) {
         this(Thread.currentThread().getContextClassLoader(), staticInit,
-                BASE_PACKAGE + buildStepName + "$" + methodName + OUTPUT_COUNT.incrementAndGet());
+                BASE_PACKAGE + buildStepName + "$" + method.getName() + "_" + HashUtil.methodSignatureSha1(method));
     }
 
     public boolean isEmpty() {
@@ -301,7 +304,7 @@ public class BytecodeRecorderImpl implements RecorderContext {
             returnValueProxy.put(returnType, proxyFactory = new ProxyFactory<>(proxyConfiguration));
         }
 
-        String key = PROXY_KEY + COUNT.incrementAndGet();
+        String key = PROXY_KEY + "_" + classId + "_" + (proxyCount++);
         Object proxyInstance = proxyFactory.newInstance(new InvocationHandler() {
             @Override
             public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
