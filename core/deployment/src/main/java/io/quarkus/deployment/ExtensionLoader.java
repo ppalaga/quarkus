@@ -21,7 +21,9 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Parameter;
 import java.lang.reflect.Type;
+import java.util.AbstractMap;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -75,6 +77,7 @@ import io.quarkus.deployment.configuration.definition.RootDefinition;
 import io.quarkus.deployment.recording.BytecodeRecorderImpl;
 import io.quarkus.deployment.recording.ObjectLoader;
 import io.quarkus.deployment.recording.RecorderContext;
+import io.quarkus.deployment.util.HashUtil;
 import io.quarkus.deployment.util.ReflectUtil;
 import io.quarkus.deployment.util.ServiceUtil;
 import io.quarkus.gizmo.BytecodeCreator;
@@ -481,7 +484,18 @@ public final class ExtensionLoader {
 
         // now iterate the methods
         final Method[] methods = clazz.getDeclaredMethods();
-        for (Method method : methods) {
+        // Sort the methods array to get reproducible results
+        @SuppressWarnings("unchecked")
+        final AbstractMap.SimpleImmutableEntry<String, Method>[] sortedMethods = new AbstractMap.SimpleImmutableEntry[methods.length];
+        for (int i = 0; i < methods.length; i++) {
+            final Method method = methods[i];
+            sortedMethods[i] = new AbstractMap.SimpleImmutableEntry<String, Method>(HashUtil.methodSignatureSha1(method),
+                    method);
+        }
+        Arrays.sort(sortedMethods, (e1, e2) -> e1.getKey().compareTo(e2.getKey()));
+        for (AbstractMap.SimpleImmutableEntry<String, Method> entry : sortedMethods) {
+            final Method method = entry.getValue();
+            final String methodSignatureSha1 = entry.getKey();
             final int mods = method.getModifiers();
             if (Modifier.isStatic(mods)) {
                 continue;
@@ -900,7 +914,7 @@ public final class ExtensionLoader {
                                 Object[] methodArgs = new Object[methodParamFns.size()];
                                 BytecodeRecorderImpl bri = isRecorder
                                         ? new BytecodeRecorderImpl(recordAnnotation.value() == ExecutionTime.STATIC_INIT,
-                                                clazz.getSimpleName(), method.getName())
+                                                clazz.getSimpleName(), method.getName(), methodSignatureSha1)
                                         : null;
                                 for (int i = 0; i < methodArgs.length; i++) {
                                     methodArgs[i] = methodParamFns.get(i).apply(bc, bri);

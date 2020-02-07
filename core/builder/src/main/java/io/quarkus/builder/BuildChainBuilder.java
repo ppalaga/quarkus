@@ -142,7 +142,6 @@ public final class BuildChainBuilder {
         final Set<ItemId> consumed = new HashSet<>();
         final Map<BuildStepBuilder, StepInfo> mappedSteps = new HashMap<>();
         int initialSingleCount = 0;
-        int initialMultiCount = 0;
         final Map<BuildStepBuilder, StackTraceElement[]> steps = this.steps;
         // compile master produce/consume maps
         final Map<ItemId, List<Consume>> allConsumes = new HashMap<>();
