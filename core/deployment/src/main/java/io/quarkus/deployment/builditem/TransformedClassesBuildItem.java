@@ -1,10 +1,11 @@
 package io.quarkus.deployment.builditem;
 
 import java.nio.file.Path;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 import io.quarkus.builder.item.SimpleBuildItem;
@@ -18,11 +19,11 @@ public final class TransformedClassesBuildItem extends SimpleBuildItem {
     private final Map<Path, Set<String>> transformedFilesByJar;
 
     public TransformedClassesBuildItem(Map<Path, Set<TransformedClass>> transformedClassesByJar) {
-        this.transformedClassesByJar = new HashMap<>(transformedClassesByJar);
-        this.transformedFilesByJar = new HashMap<>();
+        this.transformedClassesByJar = new LinkedHashMap<>(transformedClassesByJar);
+        this.transformedFilesByJar = new LinkedHashMap<>();
         for (Map.Entry<Path, Set<TransformedClass>> e : transformedClassesByJar.entrySet()) {
             transformedFilesByJar.put(e.getKey(),
-                    e.getValue().stream().map(TransformedClass::getFileName).collect(Collectors.toSet()));
+                    e.getValue().stream().map(TransformedClass::getFileName).collect(Collectors.toCollection(TreeSet::new)));
         }
     }
 
