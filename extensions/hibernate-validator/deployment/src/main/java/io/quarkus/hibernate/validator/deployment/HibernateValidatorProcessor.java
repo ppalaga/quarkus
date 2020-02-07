@@ -8,6 +8,7 @@ import java.lang.reflect.Modifier;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -166,7 +167,7 @@ class HibernateValidatorProcessor {
         // Also consider elements that are marked with @ValidateOnExecution
         consideredAnnotations.add(VALIDATE_ON_EXECUTION);
 
-        Set<DotName> classNamesToBeValidated = new HashSet<>();
+        Set<DotName> classNamesToBeValidated = new LinkedHashSet<>();
         Map<DotName, Set<String>> inheritedAnnotationsToBeValidated = new HashMap<>();
 
         for (DotName consideredAnnotation : consideredAnnotations) {
@@ -204,7 +205,7 @@ class HibernateValidatorProcessor {
         }
 
         // Add the annotations transformer to add @MethodValidated annotations on the methods requiring validation
-        Set<DotName> additionalJaxRsMethodAnnotationsDotNames = new HashSet<>(additionalJaxRsResourceMethodAnnotations.size());
+        Set<DotName> additionalJaxRsMethodAnnotationsDotNames = new HashSet<>();
         for (AdditionalJaxRsResourceMethodAnnotationsBuildItem additionalJaxRsResourceMethodAnnotation : additionalJaxRsResourceMethodAnnotations) {
             additionalJaxRsMethodAnnotationsDotNames.addAll(additionalJaxRsResourceMethodAnnotation.getAnnotationClasses());
         }
@@ -214,11 +215,10 @@ class HibernateValidatorProcessor {
                                 additionalJaxRsMethodAnnotationsDotNames,
                                 inheritedAnnotationsToBeValidated)));
 
-        Set<Class<?>> classesToBeValidated = new HashSet<>();
+        Set<Class<?>> classesToBeValidated = new LinkedHashSet<>();
         for (DotName className : classNamesToBeValidated) {
             classesToBeValidated.add(recorderContext.classProxy(className.toString()));
         }
-
         beanContainerListener
                 .produce(new BeanContainerListenerBuildItem(
                         recorder.initializeValidatorFactory(classesToBeValidated, shutdownContext, localesBuildTimeConfig)));
@@ -287,7 +287,7 @@ class HibernateValidatorProcessor {
         ClassInfo clazz = method.declaringClass();
         if (Modifier.isInterface(clazz.flags())) {
             // Remember annotated interface methods that must be validated
-            inheritedAnnotationsToBeValidated.computeIfAbsent(clazz.name(), k -> new HashSet<String>())
+            inheritedAnnotationsToBeValidated.computeIfAbsent(clazz.name(), k -> new LinkedHashSet<String>())
                     .add(method.name().toString());
         }
     }
