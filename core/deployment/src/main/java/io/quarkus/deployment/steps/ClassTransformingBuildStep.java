@@ -4,8 +4,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -41,7 +41,7 @@ public class ClassTransformingBuildStep {
         if (bytecodeTransformerBuildItems.isEmpty()) {
             return new TransformedClassesBuildItem(Collections.emptyMap());
         }
-        final Map<String, List<BiFunction<String, ClassVisitor, ClassVisitor>>> bytecodeTransformers = new HashMap<>(
+        final Map<String, List<BiFunction<String, ClassVisitor, ClassVisitor>>> bytecodeTransformers = new LinkedHashMap<>(
                 bytecodeTransformerBuildItems.size());
         for (BytecodeTransformerBuildItem i : bytecodeTransformerBuildItems) {
             bytecodeTransformers.computeIfAbsent(i.getClassToTransform(), (h) -> new ArrayList<>())
@@ -97,11 +97,12 @@ public class ClassTransformingBuildStep {
         } finally {
             executorPool.shutdown();
         }
-        Map<Path, Set<TransformedClassesBuildItem.TransformedClass>> transformedClassesByJar = new HashMap<>();
+        Map<Path, Set<TransformedClassesBuildItem.TransformedClass>> transformedClassesByJar = new LinkedHashMap<>();
         if (!transformed.isEmpty()) {
             for (Future<TransformedClassesBuildItem.TransformedClass> i : transformed) {
                 final TransformedClassesBuildItem.TransformedClass res = i.get();
-                transformedClassesByJar.computeIfAbsent(transformedToArchive.get(res.getFileName()), (a) -> new HashSet<>())
+                transformedClassesByJar
+                        .computeIfAbsent(transformedToArchive.get(res.getFileName()), (a) -> new LinkedHashSet<>())
                         .add(res);
             }
         }
