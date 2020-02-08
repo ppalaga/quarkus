@@ -179,4 +179,13 @@ public class NativeConfig {
      */
     @ConfigItem(defaultValue = "false")
     public boolean reportErrorsAtRuntime;
+
+    /**
+     * If native images produced by the {@code native-image} command should be cached in
+     * {@code ~/.quarkus/native-image-cache}. If the inputs for the command do not change, the image is pulled from the
+     * cache rather than it is built anew.
+     */
+    @ConfigItem(defaultValue = "false")
+    public boolean useNativeImageCache;
+
 }
