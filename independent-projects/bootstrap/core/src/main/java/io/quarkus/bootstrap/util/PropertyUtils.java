@@ -2,7 +2,6 @@ package io.quarkus.bootstrap.util;
 
 import java.security.AccessController;
 import java.security.PrivilegedAction;
-import java.util.Locale;
 
 /**
 *
@@ -10,9 +9,7 @@ import java.util.Locale;
 */
 public class PropertyUtils {
 
-    private static final String OS_NAME = "os.name";
     private static final String USER_HOME = "user.home";
-    private static final String WINDOWS = "windows";
 
     private static final String FALSE = "false";
     private static final String TRUE = "true";
@@ -21,7 +18,7 @@ public class PropertyUtils {
     }
 
    public static boolean isWindows() {
-       return getProperty(OS_NAME).toLowerCase(Locale.ENGLISH).indexOf(WINDOWS) >= 0;
+       return OS.current() == OS.WINDOWS;
    }
 
    public static String getUserHome() {
