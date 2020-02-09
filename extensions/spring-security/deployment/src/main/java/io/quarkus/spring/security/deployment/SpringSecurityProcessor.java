@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -178,7 +179,7 @@ class SpringSecurityProcessor {
             ApplicationIndexBuildItem index,
             BuildProducer<SpringPreAuthorizeAnnotatedMethodBuildItem> springPreAuthorizeAnnotatedMethods,
             BuildProducer<AnnotationsTransformerBuildItem> annotationsTransformer) {
-        Map<MethodInfo, AnnotationInstance> result = new HashMap<>();
+        Map<MethodInfo, AnnotationInstance> result = new LinkedHashMap<>();
 
         // first first go through the list of annotated methods
         for (AnnotationInstance instance : index.getIndex().getAnnotations(DotNames.SPRING_PRE_AUTHORIZE)) {
