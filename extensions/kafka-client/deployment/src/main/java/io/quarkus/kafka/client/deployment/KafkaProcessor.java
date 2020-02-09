@@ -1,6 +1,6 @@
 package io.quarkus.kafka.client.deployment;
 
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 import org.apache.kafka.clients.consumer.RangeAssignor;
@@ -72,7 +72,7 @@ public class KafkaProcessor {
     @BuildStep
     public void build(CombinedIndexBuildItem indexBuildItem, BuildProducer<ReflectiveClassBuildItem> reflectiveClass,
             Capabilities capabilities) {
-        Set<ClassInfo> toRegister = new HashSet<>();
+        Set<ClassInfo> toRegister = new LinkedHashSet<>();
 
         toRegister.addAll(indexBuildItem.getIndex()
                 .getAllKnownImplementors(DotName.createSimple(Serializer.class.getName())));
