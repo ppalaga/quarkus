@@ -3,7 +3,7 @@ package io.quarkus.hibernate.orm.deployment;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
@@ -73,8 +73,8 @@ final class JpaJandexScavenger {
         // list all entities and create a JPADeploymentTemplate out of it
         // Not functional as we will need one deployment template per persistence unit
         final JpaEntitiesBuildItem domainObjectCollector = new JpaEntitiesBuildItem();
-        final Set<String> enumTypeCollector = new HashSet<>();
-        final Set<String> javaTypeCollector = new HashSet<>();
+        final Set<String> enumTypeCollector = new LinkedHashSet<>();
+        final Set<String> javaTypeCollector = new LinkedHashSet<>();
         final Set<DotName> unindexedClasses = new TreeSet<>();
 
         enlistJPAModelClasses(indexView, domainObjectCollector, enumTypeCollector, javaTypeCollector, JPA_ENTITY,
@@ -143,7 +143,7 @@ final class JpaJandexScavenger {
 
     private static void enlistEmbeddedsAndElementCollections(IndexView index, JpaEntitiesBuildItem domainObjectCollector,
             Set<String> enumTypeCollector, Set<String> javaTypeCollector, Set<DotName> unindexedClasses) {
-        Set<DotName> embeddedTypes = new HashSet<>();
+        Set<DotName> embeddedTypes = new LinkedHashSet<>();
 
         for (DotName embeddedAnnotation : EMBEDDED_ANNOTATIONS) {
             Collection<AnnotationInstance> annotations = index.getAnnotations(embeddedAnnotation);

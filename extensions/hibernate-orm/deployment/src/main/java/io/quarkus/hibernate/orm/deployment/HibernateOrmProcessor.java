@@ -211,7 +211,7 @@ public final class HibernateOrmProcessor {
         //set up the scanner, as this scanning has already been done we need to just tell it about the classes we
         //have discovered. This scanner is bytecode serializable and is passed directly into the recorder
         QuarkusScanner scanner = new QuarkusScanner();
-        Set<ClassDescriptor> classDescriptors = new HashSet<>();
+        Set<ClassDescriptor> classDescriptors = new LinkedHashSet<>();
         for (String i : domainObjects.getAllModelClassNames()) {
             QuarkusScanner.ClassDescriptorImpl desc = new QuarkusScanner.ClassDescriptorImpl(i,
                     ClassDescriptor.Categorization.MODEL);
