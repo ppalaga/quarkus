@@ -12,8 +12,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -121,7 +121,7 @@ public class SecurityProcessor {
             transformers.produce(new AnnotationsTransformerBuildItem(new DenyingUnannotatedTransformer()));
         }
         if (!additionalSecuredClasses.isEmpty()) {
-            Set<String> additionalSecured = new HashSet<>();
+            Set<String> additionalSecured = new LinkedHashSet<>();
             for (AdditionalSecuredClassesBuildIem securedClasses : additionalSecuredClasses) {
                 for (ClassInfo additionalSecuredClass : securedClasses.additionalSecuredClasses) {
                     additionalSecured.add(additionalSecuredClass.name().toString());
@@ -140,7 +140,7 @@ public class SecurityProcessor {
             List<AdditionalSecurityCheckBuildItem> additionalSecurityChecks, SecurityBuildTimeConfig config) {
         classPredicate.produce(new ApplicationClassPredicateBuildItem(new SecurityCheckStorage.AppPredicate()));
 
-        Set<ClassInfo> additionalSecured = new HashSet<>();
+        Set<ClassInfo> additionalSecured = new LinkedHashSet<>();
         for (AdditionalSecuredClassesBuildIem securedClasses : additionalSecuredClasses) {
             additionalSecured.addAll(securedClasses.additionalSecuredClasses);
         }
@@ -209,8 +209,8 @@ public class SecurityProcessor {
             IndexView index,
             Set<ClassInfo> additionalSecuredClasses, boolean denyUnannotated) {
 
-        Map<MethodInfo, AnnotationInstance> methodToInstanceCollector = new HashMap<>();
-        Map<MethodInfo, Function<BytecodeCreator, ResultHandle>> result = new HashMap<>(gatherSecurityAnnotations(
+        Map<MethodInfo, AnnotationInstance> methodToInstanceCollector = new LinkedHashMap<>();
+        Map<MethodInfo, Function<BytecodeCreator, ResultHandle>> result = new LinkedHashMap<>(gatherSecurityAnnotations(
                 index, DotNames.ROLES_ALLOWED, methodToInstanceCollector,
                 (instance -> rolesAllowedSecurityCheck(instance.value().asStringArray()))));
         result.putAll(gatherSecurityAnnotations(index, DotNames.PERMIT_ALL, methodToInstanceCollector,
@@ -245,7 +245,7 @@ public class SecurityProcessor {
          * collect the declaring classes, then go through all methods of the classes and add the necessary check
          */
         if (denyUnannotated) {
-            Set<ClassInfo> allClassesWithSecurityChecks = new HashSet<>(methodToInstanceCollector.keySet().size());
+            Set<ClassInfo> allClassesWithSecurityChecks = new LinkedHashSet<>(methodToInstanceCollector.keySet().size());
             for (MethodInfo methodInfo : methodToInstanceCollector.keySet()) {
                 allClassesWithSecurityChecks.add(methodInfo.declaringClass());
             }
@@ -275,7 +275,7 @@ public class SecurityProcessor {
             Map<MethodInfo, AnnotationInstance> alreadyCheckedMethods,
             Function<AnnotationInstance, Function<BytecodeCreator, ResultHandle>> securityCheckInstanceCreator) {
 
-        Map<MethodInfo, Function<BytecodeCreator, ResultHandle>> result = new HashMap<>();
+        Map<MethodInfo, Function<BytecodeCreator, ResultHandle>> result = new LinkedHashMap<>();
 
         Collection<AnnotationInstance> instances = index.getAnnotations(dotName);
         // make sure we process annotations on methods first
