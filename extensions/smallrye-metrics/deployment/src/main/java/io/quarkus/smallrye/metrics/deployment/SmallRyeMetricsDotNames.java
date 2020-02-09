@@ -1,7 +1,7 @@
 package io.quarkus.smallrye.metrics.deployment;
 
 import java.util.Arrays;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 import org.eclipse.microprofile.metrics.Counter;
@@ -46,7 +46,7 @@ public class SmallRyeMetricsDotNames {
     public static final DotName METRICS_BINDING = DotName.createSimple(MetricsBinding.class.getName());
     public static final DotName CONCURRENT_GAUGE = DotName.createSimple(ConcurrentGauge.class.getName());
 
-    public static final Set<DotName> METRICS_ANNOTATIONS = new HashSet<>(Arrays.asList(
+    public static final Set<DotName> METRICS_ANNOTATIONS = new LinkedHashSet<>(Arrays.asList(
             GAUGE,
             TIMED,
             COUNTED,
