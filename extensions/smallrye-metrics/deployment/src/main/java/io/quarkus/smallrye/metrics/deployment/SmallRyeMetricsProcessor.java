@@ -17,8 +17,8 @@ import static io.quarkus.smallrye.metrics.deployment.SmallRyeMetricsDotNames.TIM
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -299,8 +299,8 @@ public class SmallRyeMetricsProcessor {
         JandexBeanInfoAdapter beanInfoAdapter = new JandexBeanInfoAdapter(index);
         JandexMemberInfoAdapter memberInfoAdapter = new JandexMemberInfoAdapter(index);
 
-        Set<MethodInfo> collectedMetricsMethods = new HashSet<>();
-        Map<DotName, ClassInfo> collectedMetricsClasses = new HashMap<>();
+        Set<MethodInfo> collectedMetricsMethods = new LinkedHashSet<>();
+        Map<DotName, ClassInfo> collectedMetricsClasses = new LinkedHashMap<>();
 
         for (DotName metricAnnotation : METRICS_ANNOTATIONS) {
             Collection<AnnotationInstance> metricAnnotationInstances = index.getAnnotations(metricAnnotation);
