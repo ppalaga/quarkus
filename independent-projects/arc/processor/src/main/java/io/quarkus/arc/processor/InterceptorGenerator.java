@@ -20,8 +20,8 @@ import io.quarkus.gizmo.MethodDescriptor;
 import io.quarkus.gizmo.ResultHandle;
 import java.lang.reflect.Modifier;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Predicate;
@@ -83,8 +83,8 @@ public class InterceptorGenerator extends BeanGenerator {
         FieldCreator bindings = interceptorCreator.getFieldCreator(FIELD_NAME_BINDINGS, Set.class)
                 .setModifiers(ACC_PRIVATE | ACC_FINAL);
 
-        Map<InjectionPointInfo, String> injectionPointToProviderField = new HashMap<>();
-        Map<InterceptorInfo, String> interceptorToProviderField = new HashMap<>();
+        Map<InjectionPointInfo, String> injectionPointToProviderField = new LinkedHashMap<>();
+        Map<InterceptorInfo, String> interceptorToProviderField = new LinkedHashMap<>();
         initMaps(interceptor, injectionPointToProviderField, interceptorToProviderField);
 
         createProviderFields(interceptorCreator, interceptor, injectionPointToProviderField, interceptorToProviderField);

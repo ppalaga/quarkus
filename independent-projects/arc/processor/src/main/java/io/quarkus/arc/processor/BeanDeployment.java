@@ -242,9 +242,11 @@ public class BeanDeployment {
                     .filter(BuiltinBean.INSTANCE::matches)
                     .collect(Collectors.toList());
             Set<BeanInfo> injected = injectionPoints.stream().map(InjectionPointInfo::getResolvedBean)
-                    .collect(Collectors.toSet());
-            Set<BeanInfo> declaresProducer = producers.stream().map(BeanInfo::getDeclaringBean).collect(Collectors.toSet());
-            Set<BeanInfo> declaresObserver = observers.stream().map(ObserverInfo::getDeclaringBean).collect(Collectors.toSet());
+                    .collect(Collectors.toCollection(LinkedHashSet::new));
+            Set<BeanInfo> declaresProducer = producers.stream().map(BeanInfo::getDeclaringBean)
+                    .collect(Collectors.toCollection(LinkedHashSet::new));
+            Set<BeanInfo> declaresObserver = observers.stream().map(ObserverInfo::getDeclaringBean)
+                    .collect(Collectors.toCollection(LinkedHashSet::new));
             test: for (BeanInfo bean : beans) {
                 // Named beans can be used in templates and expressions
                 if (bean.getName() != null) {
@@ -794,12 +796,12 @@ public class BeanDeployment {
         if (Kind.FIELD.equals(annotationTarget.kind())) {
             beanType = annotationTarget.asField().type();
             qualifiers = annotationTarget.asField().annotations().stream().filter(a -> getQualifier(a.name()) != null)
-                    .collect(Collectors.toSet());
+                    .collect(Collectors.toCollection(LinkedHashSet::new));
         } else if (Kind.METHOD.equals(annotationTarget.kind())) {
             beanType = annotationTarget.asMethod().returnType();
             qualifiers = annotationTarget.asMethod().annotations().stream()
                     .filter(a -> Kind.METHOD.equals(a.target().kind()) && getQualifier(a.name()) != null)
-                    .collect(Collectors.toSet());
+                    .collect(Collectors.toCollection(LinkedHashSet::new));
         } else {
             throw new RuntimeException("Unsupported annotation target: " + annotationTarget);
         }

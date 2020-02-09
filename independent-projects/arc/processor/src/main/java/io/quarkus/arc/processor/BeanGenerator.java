@@ -570,7 +570,7 @@ public class BeanGenerator extends AbstractGenerator {
         // Invoke super()
         constructor.invokeSpecialMethod(MethodDescriptors.OBJECT_CONSTRUCTOR, constructor.getThis());
 
-        // Get the TCCL - we will use it later 
+        // Get the TCCL - we will use it later
         ResultHandle currentThread = constructor
                 .invokeStaticMethod(MethodDescriptors.THREAD_CURRENT_THREAD);
         ResultHandle tccl = constructor.invokeVirtualMethod(MethodDescriptors.THREAD_GET_TCCL, currentThread);
