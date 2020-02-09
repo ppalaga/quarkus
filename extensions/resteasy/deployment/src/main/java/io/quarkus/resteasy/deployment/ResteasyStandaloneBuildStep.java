@@ -9,7 +9,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Enumeration;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -109,33 +109,35 @@ public class ResteasyStandaloneBuildStep {
      * @throws Exception
      */
     private Set<String> getClasspathResources(ApplicationArchivesBuildItem applicationArchivesBuildItem) throws Exception {
-        Set<String> knownPaths = new HashSet<>();
+        Set<String> knownPaths = new LinkedHashSet<>();
         for (ApplicationArchive i : applicationArchivesBuildItem.getAllApplicationArchives()) {
             Path resource = i.getChildPath(META_INF_RESOURCES);
             if (resource != null && Files.exists(resource)) {
                 try (Stream<Path> fileTreeElements = Files.walk(resource)) {
-                    fileTreeElements.forEach(new Consumer<Path>() {
-                        @Override
-                        public void accept(Path path) {
-                            // Skip META-INF/resources entry
-                            if (resource.equals(path)) {
-                                return;
-                            }
-                            Path rel = resource.relativize(path);
-                            if (!Files.isDirectory(path)) {
-                                String file = rel.toString();
-                                if (file.equals("index.html") || file.equals("index.htm")) {
-                                    knownPaths.add("/");
+                    fileTreeElements
+                            .sorted()
+                            .forEach(new Consumer<Path>() {
+                                @Override
+                                public void accept(Path path) {
+                                    // Skip META-INF/resources entry
+                                    if (resource.equals(path)) {
+                                        return;
+                                    }
+                                    Path rel = resource.relativize(path);
+                                    if (!Files.isDirectory(path)) {
+                                        String file = rel.toString();
+                                        if (file.equals("index.html") || file.equals("index.htm")) {
+                                            knownPaths.add("/");
+                                        }
+                                        if (!file.startsWith("/")) {
+                                            file = "/" + file;
+                                        }
+                                        // Windows has a backslash
+                                        file = file.replace('\\', '/');
+                                        knownPaths.add(file);
+                                    }
                                 }
-                                if (!file.startsWith("/")) {
-                                    file = "/" + file;
-                                }
-                                // Windows has a backslash
-                                file = file.replace('\\', '/');
-                                knownPaths.add(file);
-                            }
-                        }
-                    });
+                            });
                 }
             }
         }
@@ -165,28 +167,30 @@ public class ResteasyStandaloneBuildStep {
                 Path resource = Paths.get(url.toURI());
                 if (resource != null && Files.exists(resource)) {
                     try (Stream<Path> fileTreeElements = Files.walk(resource)) {
-                        fileTreeElements.forEach(new Consumer<Path>() {
-                            @Override
-                            public void accept(Path path) {
-                                // Skip META-INF/resources entry
-                                if (resource.equals(path)) {
-                                    return;
-                                }
-                                Path rel = resource.relativize(path);
-                                if (!Files.isDirectory(path)) {
-                                    String file = rel.toString();
-                                    if (file.equals("index.html") || file.equals("index.htm")) {
-                                        knownPaths.add("/");
+                        fileTreeElements
+                                .sorted()
+                                .forEach(new Consumer<Path>() {
+                                    @Override
+                                    public void accept(Path path) {
+                                        // Skip META-INF/resources entry
+                                        if (resource.equals(path)) {
+                                            return;
+                                        }
+                                        Path rel = resource.relativize(path);
+                                        if (!Files.isDirectory(path)) {
+                                            String file = rel.toString();
+                                            if (file.equals("index.html") || file.equals("index.htm")) {
+                                                knownPaths.add("/");
+                                            }
+                                            if (!file.startsWith("/")) {
+                                                file = "/" + file;
+                                            }
+                                            // Windows has a backslash
+                                            file = file.replace('\\', '/');
+                                            knownPaths.add(file);
+                                        }
                                     }
-                                    if (!file.startsWith("/")) {
-                                        file = "/" + file;
-                                    }
-                                    // Windows has a backslash
-                                    file = file.replace('\\', '/');
-                                    knownPaths.add(file);
-                                }
-                            }
-                        });
+                                });
                     }
                 }
             }
