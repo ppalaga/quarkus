@@ -131,9 +131,9 @@ public class BytecodeRecorderImpl implements RecorderContext {
         this.classId = HashUtil.sha1(className);
     }
 
-    public BytecodeRecorderImpl(boolean staticInit, String buildStepName, Method method) {
+    public BytecodeRecorderImpl(boolean staticInit, String buildStepName, String methodName, String methodSignatureSha1) {
         this(Thread.currentThread().getContextClassLoader(), staticInit,
-                BASE_PACKAGE + buildStepName + "$" + method.getName() + "_" + HashUtil.methodSignatureSha1(method));
+                BASE_PACKAGE + buildStepName + "$" + methodName + "_" + methodSignatureSha1);
     }
 
     public boolean isEmpty() {
