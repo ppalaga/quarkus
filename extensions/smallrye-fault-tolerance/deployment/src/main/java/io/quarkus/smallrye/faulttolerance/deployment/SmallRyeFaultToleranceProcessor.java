@@ -1,7 +1,7 @@
 package io.quarkus.smallrye.faulttolerance.deployment;
 
 import java.time.temporal.ChronoUnit;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.OptionalInt;
 import java.util.Set;
 
@@ -61,7 +61,7 @@ import io.smallrye.faulttolerance.propagation.ContextPropagationExecutorFactory;
 
 public class SmallRyeFaultToleranceProcessor {
 
-    private static final Set<DotName> FT_ANNOTATIONS = new HashSet<>();
+    private static final Set<DotName> FT_ANNOTATIONS = new LinkedHashSet<>();
     static {
         FT_ANNOTATIONS.add(DotName.createSimple(Asynchronous.class.getName()));
         FT_ANNOTATIONS.add(DotName.createSimple(Bulkhead.class.getName()));
@@ -93,7 +93,7 @@ public class SmallRyeFaultToleranceProcessor {
         nativeImageSystemProperty.produce(new NativeImageSystemPropertyBuildItem("rx.unsafe-disable", "true"));
 
         // Add reflective acccess to fallback handlers
-        Set<String> fallbackHandlers = new HashSet<>();
+        Set<String> fallbackHandlers = new LinkedHashSet<>();
         for (ClassInfo implementor : index
                 .getAllKnownImplementors(DotName.createSimple(FallbackHandler.class.getName()))) {
             fallbackHandlers.add(implementor.name().toString());
@@ -188,7 +188,7 @@ public class SmallRyeFaultToleranceProcessor {
             ValidationPhaseBuildItem validationPhase,
             BeanArchiveIndexBuildItem beanArchiveIndexBuildItem) {
         AnnotationStore annotationStore = validationPhase.getContext().get(BuildExtension.Key.ANNOTATION_STORE);
-        Set<String> beanNames = new HashSet<>();
+        Set<String> beanNames = new LinkedHashSet<>();
         IndexView index = beanArchiveIndexBuildItem.getIndex();
 
         for (BeanInfo info : validationPhase.getContext().beans()) {
