@@ -1,6 +1,6 @@
 package io.quarkus.resteasy.jsonb.deployment;
 
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 import javax.json.bind.Jsonb;
@@ -60,7 +60,7 @@ public class ResteasyJsonbProcessor {
      * for the Jsonb
      */
     private Set<String> getUserSuppliedJsonbProducerBeans(IndexView index) {
-        Set<String> result = new HashSet<>();
+        Set<String> result = new LinkedHashSet<>();
         for (AnnotationInstance annotation : index.getAnnotations(DotNames.PRODUCES)) {
             if (annotation.target().kind() != AnnotationTarget.Kind.METHOD) {
                 continue;

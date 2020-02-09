@@ -6,9 +6,9 @@ import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -179,7 +179,7 @@ public class ResteasyServerCommonProcessor {
         }
 
         Collection<AnnotationInstance> paths = beanArchiveIndexBuildItem.getIndex().getAnnotations(ResteasyDotNames.PATH);
-        Set<AnnotationInstance> additionalPaths = new HashSet<>();
+        Set<AnnotationInstance> additionalPaths = new LinkedHashSet<>();
         for (AdditionalJaxRsResourceDefiningAnnotationBuildItem annotation : additionalJaxRsResourceDefiningAnnotations) {
             additionalPaths.addAll(beanArchiveIndexBuildItem.getIndex().getAnnotations(annotation.getAnnotationClass()));
         }
@@ -213,9 +213,9 @@ public class ResteasyServerCommonProcessor {
             }
         }
 
-        Map<DotName, ClassInfo> scannedResources = new HashMap<>();
-        Set<DotName> pathInterfaces = new HashSet<>();
-        Set<ClassInfo> withoutDefaultCtor = new HashSet<>();
+        Map<DotName, ClassInfo> scannedResources = new LinkedHashMap<>();
+        Set<DotName> pathInterfaces = new LinkedHashSet<>();
+        Set<ClassInfo> withoutDefaultCtor = new LinkedHashSet<>();
         for (AnnotationInstance annotation : allPaths) {
             if (annotation.target().kind() == AnnotationTarget.Kind.CLASS) {
                 ClassInfo clazz = annotation.target().asClass();
@@ -253,7 +253,7 @@ public class ResteasyServerCommonProcessor {
             // Sub-resource locators are unremovable beans
             unremovableBeans.produce(
                     new UnremovableBeanBuildItem(new UnremovableBeanBuildItem.BeanClassNamesExclusion(
-                            subresources.stream().map(Object::toString).collect(Collectors.toSet()))));
+                            subresources.stream().map(Object::toString).collect(Collectors.toCollection(LinkedHashSet::new)))));
         }
 
         // generate default constructors for suitable concrete @Path classes that don't have them
@@ -271,7 +271,7 @@ public class ResteasyServerCommonProcessor {
             reflectiveClass.produce(new ReflectiveClassBuildItem(false, false, implementation.name().toString()));
         }
 
-        Map<String, String> resteasyInitParameters = new HashMap<>();
+        Map<String, String> resteasyInitParameters = new LinkedHashMap<>();
 
         ResteasyDeployment deployment = new ResteasyDeploymentImpl();
         registerProviders(deployment, resteasyInitParameters, reflectiveClass, unremovableBeans,
@@ -306,7 +306,7 @@ public class ResteasyServerCommonProcessor {
         resteasyServerConfig.produce(new ResteasyServerConfigBuildItem(path, resteasyInitParameters));
 
         Set<DotName> autoInjectAnnotationNames = autoInjectAnnotations.stream().flatMap(a -> a.getAnnotationNames().stream())
-                .collect(Collectors.toSet());
+                .collect(Collectors.toCollection(LinkedHashSet::new));
         annotationsTransformer.produce(new AnnotationsTransformerBuildItem(new AnnotationsTransformer() {
 
             @Override
@@ -368,7 +368,7 @@ public class ResteasyServerCommonProcessor {
             BuildProducer<AdditionalBeanBuildItem> additionalBeans) {
         // NOTE: we cannot process @Path interface implementors within the ResteasyServerCommonProcessor.build() method because of build cycles
         IndexView index = combinedIndexBuildItem.getIndex();
-        Set<DotName> pathInterfaces = new HashSet<>();
+        Set<DotName> pathInterfaces = new LinkedHashSet<>();
         for (AnnotationInstance annotation : index.getAnnotations(ResteasyDotNames.PATH)) {
             if (annotation.target().kind() == AnnotationTarget.Kind.CLASS
                     && Modifier.isInterface(annotation.target().asClass().flags())) {
@@ -378,7 +378,7 @@ public class ResteasyServerCommonProcessor {
         if (pathInterfaces.isEmpty()) {
             return;
         }
-        Set<ClassInfo> pathInterfaceImplementors = new HashSet<>();
+        Set<ClassInfo> pathInterfaceImplementors = new LinkedHashSet<>();
         for (DotName iface : pathInterfaces) {
             for (ClassInfo implementor : index.getAllKnownImplementors(iface)) {
                 pathInterfaceImplementors.add(implementor);
@@ -435,7 +435,7 @@ public class ResteasyServerCommonProcessor {
 
     private Set<DotName> findSubresources(IndexView index, Map<DotName, ClassInfo> scannedResources) {
         // First identify sub-resource candidates
-        Set<DotName> subresources = new HashSet<>();
+        Set<DotName> subresources = new LinkedHashSet<>();
         for (DotName annotation : METHOD_ANNOTATIONS) {
             Collection<AnnotationInstance> annotationInstances = index.getAnnotations(annotation);
             for (AnnotationInstance annotationInstance : annotationInstances) {
@@ -449,7 +449,7 @@ public class ResteasyServerCommonProcessor {
         }
         if (!subresources.isEmpty()) {
             // Collect sub-resource locator return types
-            Set<DotName> subresourceLocatorTypes = new HashSet<>();
+            Set<DotName> subresourceLocatorTypes = new LinkedHashSet<>();
             for (ClassInfo resourceClass : scannedResources.values()) {
                 ClassInfo clazz = resourceClass;
                 while (clazz != null) {
@@ -526,7 +526,8 @@ public class ResteasyServerCommonProcessor {
             Set<ClassInfo> withoutDefaultCtor,
             List<AdditionalJaxRsResourceDefiningAnnotationBuildItem> additionalJaxRsResourceDefiningAnnotations) {
 
-        final Set<String> allowedAnnotationPrefixes = new HashSet<>(1 + additionalJaxRsResourceDefiningAnnotations.size());
+        final Set<String> allowedAnnotationPrefixes = new LinkedHashSet<>(
+                1 + additionalJaxRsResourceDefiningAnnotations.size());
         allowedAnnotationPrefixes.add(packageName(ResteasyDotNames.PATH));
         allowedAnnotationPrefixes.add("kotlin"); // make sure the annotation that the Kotlin compiler adds don't interfere with creating a default constructor
         for (AdditionalJaxRsResourceDefiningAnnotationBuildItem additionalJaxRsResourceDefiningAnnotation : additionalJaxRsResourceDefiningAnnotations) {

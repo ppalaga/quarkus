@@ -1,6 +1,6 @@
 package io.quarkus.resteasy.jackson.deployment;
 
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 import org.jboss.jandex.AnnotationInstance;
@@ -54,7 +54,7 @@ public class ResteasyJacksonProcessor {
      * for the ObjectMapper
      */
     private Set<String> getUserSuppliedJacksonProducerBeans(IndexView index) {
-        Set<String> result = new HashSet<>();
+        Set<String> result = new LinkedHashSet<>();
         for (AnnotationInstance annotation : index.getAnnotations(DotNames.PRODUCES)) {
             if (annotation.target().kind() != AnnotationTarget.Kind.METHOD) {
                 continue;

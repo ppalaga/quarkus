@@ -2,6 +2,7 @@ package io.quarkus.resteasy.deployment;
 
 import static io.quarkus.deployment.annotations.ExecutionTime.STATIC_INIT;
 
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Optional;
@@ -119,7 +120,9 @@ public class ResteasyServletProcessor {
     @Record(STATIC_INIT)
     void addServletsToExceptionMapper(List<ServletBuildItem> servlets, ExceptionMapperRecorder recorder) {
         recorder.setServlets(servlets.stream().filter(s -> !JAX_RS_SERVLET_NAME.equals(s.getName()))
-                .collect(Collectors.toMap(s -> s.getName(), s -> s.getMappings())));
+                .collect(Collectors.toMap(s -> s.getName(), s -> s.getMappings(), (u, v) -> {
+                    throw new IllegalStateException(String.format("Duplicate key %s", u));
+                }, LinkedHashMap::new)));
     }
 
     private String getMappingPath(String path) {
