@@ -2,7 +2,7 @@ package io.quarkus.spring.data.deployment.generate;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -31,7 +31,7 @@ public final class GenerationUtil {
     }
 
     static Set<MethodInfo> interfaceMethods(Collection<DotName> interfaces, IndexView index) {
-        Set<MethodInfo> result = new HashSet<>();
+        Set<MethodInfo> result = new LinkedHashSet<>();
         for (DotName dotName : interfaces) {
             ClassInfo classInfo = index.getClassByName(dotName);
             result.addAll(classInfo.methods());

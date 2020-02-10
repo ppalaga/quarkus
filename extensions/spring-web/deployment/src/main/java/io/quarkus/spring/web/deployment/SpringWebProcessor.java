@@ -7,8 +7,8 @@ import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -93,7 +93,7 @@ public class SpringWebProcessor {
     private static final DotName HTTP_ENTITY = DotName.createSimple("org.springframework.http.HttpEntity");
     private static final DotName RESPONSE_ENTITY = DotName.createSimple("org.springframework.http.ResponseEntity");
 
-    private static final Set<DotName> DISALLOWED_EXCEPTION_CONTROLLER_RETURN_TYPES = new HashSet<>(Arrays.asList(
+    private static final Set<DotName> DISALLOWED_EXCEPTION_CONTROLLER_RETURN_TYPES = new LinkedHashSet<>(Arrays.asList(
             MODEL_AND_VIEW, VIEW, MODEL, HTTP_ENTITY));
 
     @BuildStep
@@ -156,7 +156,7 @@ public class SpringWebProcessor {
             return;
         }
 
-        final Set<String> classNames = new HashSet<>();
+        final Set<String> classNames = new LinkedHashSet<>();
         for (AnnotationInstance annotation : annotations) {
             classNames.add(annotation.target().asClass().toString());
         }
@@ -188,7 +188,7 @@ public class SpringWebProcessor {
             return;
         }
 
-        Map<String, NonJaxRsClassMappings> nonJaxRsPaths = new HashMap<>();
+        Map<String, NonJaxRsClassMappings> nonJaxRsPaths = new LinkedHashMap<>();
         for (AnnotationInstance restControllerInstance : restControllerAnnotations) {
             String basePath = "/";
             ClassInfo restControllerAnnotatedClass = restControllerInstance.target().asClass();
@@ -200,7 +200,7 @@ public class SpringWebProcessor {
                     basePath = basePathFromAnnotation;
                 }
             }
-            Map<String, String> methodNameToPath = new HashMap<>();
+            Map<String, String> methodNameToPath = new LinkedHashMap<>();
             NonJaxRsClassMappings nonJaxRsClassMappings = new NonJaxRsClassMappings();
             nonJaxRsClassMappings.setMethodNameToPath(methodNameToPath);
             nonJaxRsClassMappings.setBasePath(basePath);
@@ -265,14 +265,14 @@ public class SpringWebProcessor {
         final MediaTypeMap<String> categorizedReaders = new MediaTypeMap<>();
         final MediaTypeMap<String> categorizedWriters = new MediaTypeMap<>();
         final MediaTypeMap<String> categorizedContextResolvers = new MediaTypeMap<>();
-        final Set<String> otherProviders = new HashSet<>();
+        final Set<String> otherProviders = new LinkedHashSet<>();
 
         ResteasyCommonProcessor.categorizeProviders(availableProviders, categorizedReaders, categorizedWriters,
                 categorizedContextResolvers,
                 otherProviders);
 
         boolean useAllAvailable = false;
-        Set<String> providersToRegister = new HashSet<>();
+        Set<String> providersToRegister = new LinkedHashSet<>();
 
         OUTER: for (DotName mappingClass : MAPPING_ANNOTATIONS) {
             final Collection<AnnotationInstance> instances = beanArchiveIndexBuildItem.getIndex().getAnnotations(mappingClass);

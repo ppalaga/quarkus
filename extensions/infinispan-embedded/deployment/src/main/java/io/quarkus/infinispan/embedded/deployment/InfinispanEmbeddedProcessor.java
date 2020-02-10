@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.ServiceLoader;
 import java.util.Set;
@@ -112,7 +112,7 @@ class InfinispanEmbeddedProcessor {
         MapExternalizer.getSupportedPrivateClasses()
                 .forEach(ceClass -> reflectiveClass.produce(new ReflectiveClassBuildItem(false, false, ceClass)));
 
-        Set<DotName> excludedClasses = new HashSet<>();
+        Set<DotName> excludedClasses = new LinkedHashSet<>();
         excludedReflectionClasses.forEach(excludedBuildItem -> excludedClasses.add(excludedBuildItem.getExcludedClass()));
 
         IndexView combinedIndex = combinedIndexBuildItem.getIndex();

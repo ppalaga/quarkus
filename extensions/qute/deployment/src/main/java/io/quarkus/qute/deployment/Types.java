@@ -1,8 +1,8 @@
 package io.quarkus.qute.deployment;
 
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -18,7 +18,7 @@ public final class Types {
 
     static Set<Type> getTypeClosure(ClassInfo classInfo, Map<TypeVariable, Type> resolvedTypeParameters,
             IndexView index) {
-        Set<Type> types = new HashSet<>();
+        Set<Type> types = new LinkedHashSet<>();
         List<TypeVariable> typeParameters = classInfo.typeParameters();
 
         if (typeParameters.isEmpty() || !typeParameters.stream().allMatch(resolvedTypeParameters::containsKey)) {
@@ -63,7 +63,7 @@ public final class Types {
     static <T extends Type> Map<TypeVariable, Type> buildResolvedMap(List<T> resolvedArguments,
             List<TypeVariable> typeVariables,
             Map<TypeVariable, Type> resolvedTypeParameters, IndexView index) {
-        Map<TypeVariable, Type> resolvedMap = new HashMap<>();
+        Map<TypeVariable, Type> resolvedMap = new LinkedHashMap<>();
         for (int i = 0; i < resolvedArguments.size(); i++) {
             resolvedMap.put(typeVariables.get(i), resolveTypeParam(resolvedArguments.get(i), resolvedTypeParameters, index));
         }

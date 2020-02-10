@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
@@ -122,7 +122,7 @@ public class ResteasyCommonProcessor {
             BeanArchiveIndexBuildItem beanArchiveIndexBuildItem,
             List<ResteasyJaxrsProviderBuildItem> contributedProviderBuildItems, Capabilities capabilities) throws Exception {
 
-        Set<String> contributedProviders = new HashSet<>();
+        Set<String> contributedProviders = new LinkedHashSet<>();
         for (ResteasyJaxrsProviderBuildItem contributedProviderBuildItem : contributedProviderBuildItems) {
             contributedProviders.add(contributedProviderBuildItem.getName());
         }
@@ -139,13 +139,13 @@ public class ResteasyCommonProcessor {
         MediaTypeMap<String> categorizedReaders = new MediaTypeMap<>();
         MediaTypeMap<String> categorizedWriters = new MediaTypeMap<>();
         MediaTypeMap<String> categorizedContextResolvers = new MediaTypeMap<>();
-        Set<String> otherProviders = new HashSet<>();
+        Set<String> otherProviders = new LinkedHashSet<>();
 
         categorizeProviders(availableProviders, categorizedReaders, categorizedWriters, categorizedContextResolvers,
                 otherProviders);
 
         // add the other providers detected
-        Set<String> providersToRegister = new HashSet<>(otherProviders);
+        Set<String> providersToRegister = new LinkedHashSet<>(otherProviders);
 
         if (!capabilities.isCapabilityPresent(Capabilities.RESTEASY_JSON_EXTENSION)) {
 
@@ -172,7 +172,7 @@ public class ResteasyCommonProcessor {
                 categorizedContextResolvers, index, beansIndex);
 
         if (useBuiltinProviders) {
-            providersToRegister = new HashSet<>(contributedProviders);
+            providersToRegister = new LinkedHashSet<>(contributedProviders);
             providersToRegister.addAll(availableProviders);
         } else {
             providersToRegister.addAll(contributedProviders);
@@ -351,7 +351,7 @@ public class ResteasyCommonProcessor {
         // - if neither of the above specifies an element-type then we by fallback to including text/plain
         //   provider as a default
         if (matches(MediaType.SERVER_SENT_EVENTS_TYPE, mediaType)) {
-            final Set<String> additionalProvidersToRegister = new HashSet<>();
+            final Set<String> additionalProvidersToRegister = new LinkedHashSet<>();
             // first check for @SseElementType
             final AnnotationInstance sseElementTypeAnnInst = targetMethod
                     .annotation(ResteasyDotNames.RESTEASY_SSE_ELEMENT_TYPE);

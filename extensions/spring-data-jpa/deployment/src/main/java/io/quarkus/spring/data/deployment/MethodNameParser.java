@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -49,14 +49,14 @@ public class MethodNameParser {
             "IsEmpty", "Empty",
             "IsNotEmpty", "NotEmpty");
 
-    private static final Set<String> STRING_LIKE_OPERATIONS = new HashSet<>(Arrays.asList(
+    private static final Set<String> STRING_LIKE_OPERATIONS = new LinkedHashSet<>(Arrays.asList(
             "IsLike", "Like",
             "IsNotLike", "NotLike",
             "IsStartingWith", "StartingWith", "StartsWith",
             "IsEndingWith", "EndingWith", "EndsWith",
             "IsContaining", "Containing", "Contains"));
 
-    private static final Set<String> BOOLEAN_OPERATIONS = new HashSet<>(Arrays.asList("True", "False"));
+    private static final Set<String> BOOLEAN_OPERATIONS = new LinkedHashSet<>(Arrays.asList("True", "False"));
 
     private final ClassInfo entityClass;
     private final IndexView indexView;

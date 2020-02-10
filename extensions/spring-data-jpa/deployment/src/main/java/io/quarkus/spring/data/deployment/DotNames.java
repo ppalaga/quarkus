@@ -2,8 +2,8 @@ package io.quarkus.spring.data.deployment;
 
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -41,7 +41,7 @@ public final class DotNames {
     public static final DotName SPRING_DATA_QUERY_EXAMPLE_EXECUTOR = DotName
             .createSimple(QueryByExampleExecutor.class.getName());
 
-    public static final Set<DotName> SUPPORTED_REPOSITORIES = new HashSet<>(Arrays.asList(
+    public static final Set<DotName> SUPPORTED_REPOSITORIES = new LinkedHashSet<>(Arrays.asList(
             SPRING_DATA_JPA_REPOSITORY, SPRING_DATA_PAGING_REPOSITORY, SPRING_DATA_CRUD_REPOSITORY, SPRING_DATA_REPOSITORY));
 
     public static final DotName SPRING_DATA_NO_REPOSITORY_BEAN = DotName

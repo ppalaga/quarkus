@@ -3,7 +3,7 @@ package io.quarkus.resteasy.deployment;
 import static io.quarkus.deployment.annotations.ExecutionTime.STATIC_INIT;
 import static io.quarkus.resteasy.deployment.SecurityTransformerUtils.hasSecurityAnnotation;
 
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -45,7 +45,7 @@ public class ResteasyBuiltinsProcessor {
             ResteasyDeploymentBuildItem resteasyDeployment,
             BuildProducer<AdditionalSecuredClassesBuildIem> additionalSecuredClasses) {
         if (config.denyJaxRs) {
-            Set<ClassInfo> classes = new HashSet<>();
+            Set<ClassInfo> classes = new LinkedHashSet<>();
 
             List<String> resourceClasses = resteasyDeployment.getDeployment().getScannedResourceClasses();
             for (String className : resourceClasses) {
@@ -82,7 +82,7 @@ public class ResteasyBuiltinsProcessor {
             ExceptionMapperRecorder recorder) {
         recorder.setStaticResourceRoots(applicationArchivesBuildItem.getAllApplicationArchives().stream()
                 .map(i -> i.getArchiveRoot().resolve(META_INF_RESOURCES).toAbsolutePath().toString())
-                .collect(Collectors.toSet()));
+                .collect(Collectors.toCollection(LinkedHashSet::new)));
     }
 
     @Record(STATIC_INIT)

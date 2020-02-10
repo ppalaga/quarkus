@@ -1,7 +1,7 @@
 package io.quarkus.resteasy.common.deployment;
 
 import java.util.Arrays;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Predicate;
@@ -68,7 +68,7 @@ public final class ResteasyDotNames {
     }
 
     // Types ignored for reflection used by the RESTEasy and SmallRye REST client extensions.
-    private static final Set<DotName> TYPES_IGNORED_FOR_REFLECTION = new HashSet<>(Arrays.asList(
+    private static final Set<DotName> TYPES_IGNORED_FOR_REFLECTION = new LinkedHashSet<>(Arrays.asList(
             // javax.json
             DotName.createSimple("javax.json.JsonObject"),
             DotName.createSimple("javax.json.JsonArray"),

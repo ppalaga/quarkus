@@ -2,7 +2,7 @@ package io.quarkus.resteasy.deployment;
 
 import static java.util.Arrays.asList;
 
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 import javax.annotation.security.DenyAll;
@@ -24,7 +24,7 @@ public class SecurityTransformerUtils {
     private static final Set<DotName> SECURITY_ANNOTATIONS;
 
     static {
-        SECURITY_ANNOTATIONS = new HashSet<>();
+        SECURITY_ANNOTATIONS = new LinkedHashSet<>();
         // keep the contents the same as in io.quarkus.security.deployment.SecurityAnnotationsRegistrar
         SECURITY_ANNOTATIONS.addAll(asList(
                 DotName.createSimple(RolesAllowed.class.getName()),
