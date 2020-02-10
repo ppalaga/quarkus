@@ -2,7 +2,7 @@ package io.quarkus.kubernetes.client.deployment;
 
 import static io.quarkus.deployment.annotations.ExecutionTime.STATIC_INIT;
 
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -61,7 +61,7 @@ public class KubernetesClientProcessor {
         featureProducer.produce(new FeatureBuildItem(FeatureBuildItem.KUBERNETES_CLIENT));
         roleProducer.produce(new KubernetesRoleBuildItem("view"));
 
-        Set<String> watchedClasses = new HashSet<>();
+        Set<String> watchedClasses = new LinkedHashSet<>();
         // make sure the watchers fully (and not weakly) register Kubernetes classes for reflection
         applicationIndex.getIndex().getAllKnownImplementors(WATCHER)
                 .forEach(c -> {
