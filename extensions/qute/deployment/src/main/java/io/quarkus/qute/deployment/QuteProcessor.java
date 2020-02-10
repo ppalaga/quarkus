@@ -13,9 +13,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -159,7 +159,7 @@ public class QuteProcessor {
 
         // A dummy engine instance is used to parse and validate all templates during the build. The real engine instance is created at startup.
         Engine dummyEngine = Engine.builder().addDefaultSectionHelpers().computeSectionHelper(name -> {
-            // Create a dummy section helper factory for an uknown section that could be potentially registered at runtime 
+            // Create a dummy section helper factory for an uknown section that could be potentially registered at runtime
             return new SectionHelperFactory<SectionHelper>() {
                 @Override
                 public SectionHelper initialize(SectionInitContext context) {
@@ -293,8 +293,8 @@ public class QuteProcessor {
             BuildProducer<TemplateExtensionMethodBuildItem> extensionMethods) {
 
         IndexView index = beanArchiveIndex.getIndex();
-        Map<MethodInfo, AnnotationInstance> methods = new HashMap<>();
-        Map<ClassInfo, AnnotationInstance> classes = new HashMap<>();
+        Map<MethodInfo, AnnotationInstance> methods = new LinkedHashMap<>();
+        Map<ClassInfo, AnnotationInstance> classes = new LinkedHashMap<>();
 
         for (AnnotationInstance templateExtension : index.getAnnotations(ExtensionMethodGenerator.TEMPLATE_EXTENSION)) {
             if (templateExtension.target().kind() == Kind.METHOD) {
@@ -361,8 +361,8 @@ public class QuteProcessor {
         Set<Expression> injectExpressions = collectInjectExpressions(analysis);
 
         if (!injectExpressions.isEmpty()) {
-            // IMPLEMENTATION NOTE: 
-            // We do not support injection of synthetic beans with names 
+            // IMPLEMENTATION NOTE:
+            // We do not support injection of synthetic beans with names
             // Dependency on the ValidationPhaseBuildItem would result in a cycle in the build chain
             Map<String, BeanInfo> namedBeans = registrationPhase.getContext().beans().withName()
                     .collect(toMap(BeanInfo::getName, Function.identity()));
@@ -488,8 +488,8 @@ public class QuteProcessor {
             }
         };
 
-        Set<ClassInfo> controlled = new HashSet<>();
-        Map<ClassInfo, AnnotationInstance> uncontrolled = new HashMap<>();
+        Set<ClassInfo> controlled = new LinkedHashSet<>();
+        Map<ClassInfo, AnnotationInstance> uncontrolled = new LinkedHashMap<>();
         for (AnnotationInstance templateData : index.getAnnotations(ValueResolverGenerator.TEMPLATE_DATA)) {
             processsTemplateData(index, templateData, templateData.target(), controlled, uncontrolled);
         }
@@ -517,7 +517,7 @@ public class QuteProcessor {
             generator.generate(data);
         }
 
-        Set<String> generatedTypes = new HashSet<>();
+        Set<String> generatedTypes = new LinkedHashSet<>();
         generatedTypes.addAll(generator.getGeneratedTypes());
 
         ExtensionMethodGenerator extensionMethodGenerator = new ExtensionMethodGenerator(classOutput);
@@ -554,7 +554,7 @@ public class QuteProcessor {
             ValidationPhaseBuildItem validationPhase,
             BuildProducer<ValidationErrorBuildItem> validationErrors) {
 
-        Set<String> filePaths = new HashSet<String>();
+        Set<String> filePaths = new LinkedHashSet<String>();
         for (TemplatePathBuildItem templatePath : templatePaths) {
             String path = templatePath.getPath();
             filePaths.add(path);
@@ -612,9 +612,10 @@ public class QuteProcessor {
 
     @BuildStep
     TemplateVariantsBuildItem collectTemplateVariants(List<TemplatePathBuildItem> templatePaths) throws IOException {
-        Set<String> allPaths = templatePaths.stream().map(TemplatePathBuildItem::getPath).collect(Collectors.toSet());
+        Set<String> allPaths = templatePaths.stream().map(TemplatePathBuildItem::getPath)
+                .collect(Collectors.toCollection(LinkedHashSet::new));
         // item -> [item.html, item.txt]
-        Map<String, List<String>> baseToVariants = new HashMap<>();
+        Map<String, List<String>> baseToVariants = new LinkedHashMap<>();
         for (String path : allPaths) {
             int idx = path.lastIndexOf('.');
             if (idx != -1) {
@@ -682,7 +683,7 @@ public class QuteProcessor {
             // First get the type closure of the current match type
             Set<Type> closure = Types.getTypeClosure(match.clazz, Types.buildResolvedMap(
                     match.getParameterizedTypeArguments(), match.getTypeParameters(),
-                    new HashMap<>(), index), index);
+                    new LinkedHashMap<>(), index), index);
             DotName declaringClassName = member.kind() == Kind.METHOD ? member.asMethod().declaringClass().name()
                     : member.asField().declaringClass().name();
             // Then find the declaring type with resolved type variables
@@ -712,7 +713,7 @@ public class QuteProcessor {
 
     void processLoopHint(Match match, IndexView index) {
         Set<Type> closure = Types.getTypeClosure(match.clazz, Types.buildResolvedMap(
-                match.getParameterizedTypeArguments(), match.getTypeParameters(), new HashMap<>(), index), index);
+                match.getParameterizedTypeArguments(), match.getTypeParameters(), new LinkedHashMap<>(), index), index);
         Type matchType = null;
         Type iterableType = closure.stream().filter(t -> t.name().equals(ITERABLE)).findFirst().orElse(null);
         if (iterableType != null) {
@@ -830,7 +831,7 @@ public class QuteProcessor {
     }
 
     private Set<Expression> collectInjectExpressions(TemplatesAnalysisBuildItem analysis) {
-        Set<Expression> injectExpressions = new HashSet<>();
+        Set<Expression> injectExpressions = new LinkedHashSet<>();
         for (TemplateAnalysis template : analysis.getAnalysis()) {
             injectExpressions.addAll(collectInjectExpressions(template));
         }
@@ -838,7 +839,7 @@ public class QuteProcessor {
     }
 
     private Set<Expression> collectInjectExpressions(TemplateAnalysis analysis) {
-        Set<Expression> injectExpressions = new HashSet<>();
+        Set<Expression> injectExpressions = new LinkedHashSet<>();
         for (Expression expression : analysis.expressions) {
             if (expression.literal != null) {
                 continue;
@@ -870,7 +871,7 @@ public class QuteProcessor {
         String fullPath = basePath + filePath;
         LOGGER.debugf("Produce template build items [filePath: %s, fullPath: %s, originalPath: %s", filePath, fullPath,
                 originalPath);
-        // NOTE: we cannot just drop the template because a template param can be added 
+        // NOTE: we cannot just drop the template because a template param can be added
         watchedPaths.produce(new HotDeploymentWatchedFileBuildItem(fullPath, true));
         nativeImageResources.produce(new NativeImageResourceBuildItem(fullPath));
         templatePaths.produce(new TemplatePathBuildItem(filePath, originalPath));

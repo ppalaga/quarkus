@@ -2,7 +2,7 @@ package io.quarkus.qute.deployment;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
@@ -32,7 +32,7 @@ class TypeCheckInfo {
             String partsStr = value
                     .substring(partsIdx + 1, value.length());
             parts = new ArrayList<>(Expressions.splitParts(partsStr));
-            helperHints = new HashMap<>();
+            helperHints = new LinkedHashMap<>();
             // [java.util.List<org.acme.Item>]<for>.name
             String firstPart = parts.get(0);
             if (firstPart.equals(helperHint(firstPart))) {
