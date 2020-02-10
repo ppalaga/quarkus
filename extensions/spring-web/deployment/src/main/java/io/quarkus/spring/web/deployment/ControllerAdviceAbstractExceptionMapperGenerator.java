@@ -3,7 +3,7 @@ package io.quarkus.spring.web.deployment;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -49,7 +49,7 @@ class ControllerAdviceAbstractExceptionMapperGenerator extends AbstractException
     private final List<Type> parameterTypes;
     private final String declaringClassName;
 
-    private final Map<Type, FieldDescriptor> parameterTypeToField = new HashMap<>();
+    private final Map<Type, FieldDescriptor> parameterTypeToField = new LinkedHashMap<>();
 
     private FieldDescriptor httpHeadersField;
 
