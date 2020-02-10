@@ -3,7 +3,7 @@ package io.quarkus.spring.data.deployment.generate;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -61,8 +61,8 @@ public class CustomQueryMethodsAdder extends AbstractMethodsAdder {
             ClassInfo entityClassInfo) {
 
         // Remember custom return types: {resultType:{methodName:[fieldNames]}}
-        Map<DotName, Map<String, List<String>>> customResultTypes = new HashMap<>(3);
-        Map<DotName, DotName> customResultTypeNames = new HashMap<>(3);
+        Map<DotName, Map<String, List<String>>> customResultTypes = new LinkedHashMap<>(3);
+        Map<DotName, DotName> customResultTypeNames = new LinkedHashMap<>(3);
 
         for (MethodInfo method : repositoryClassInfo.methods()) {
 
@@ -119,7 +119,7 @@ public class CustomQueryMethodsAdder extends AbstractMethodsAdder {
 
             // go through the method annotations, find the @Param annotation on parameters
             // and map the name to the method param index
-            Map<String, Integer> namedParameterToIndex = new HashMap<>();
+            Map<String, Integer> namedParameterToIndex = new LinkedHashMap<>();
             List<AnnotationInstance> annotations = method.annotations();
             for (AnnotationInstance annotation : annotations) {
                 if ((annotation.target().kind() != AnnotationTarget.Kind.METHOD_PARAMETER)
@@ -249,7 +249,7 @@ public class CustomQueryMethodsAdder extends AbstractMethodsAdder {
 
                     if (customResultTypeName.equals(entityClassInfo.name())
                             || customResultTypeName.equals(DotNames.OBJECT)) {
-                        // Result is using standard entity or Object result type 
+                        // Result is using standard entity or Object result type
                         customResultTypeName = null;
                     } else {
                         // The result is using a custom type.
@@ -264,7 +264,7 @@ public class CustomQueryMethodsAdder extends AbstractMethodsAdder {
 
                             // Remember the parameters for this usage of the custom type, we'll deal with it later
                             customResultTypes.computeIfAbsent(customResultTypeName,
-                                    k -> new HashMap<String, List<String>>()).put(methodName, fieldNames);
+                                    k -> new LinkedHashMap<String, List<String>>()).put(methodName, fieldNames);
                         } else {
                             throw new IllegalArgumentException(
                                     "Query annotations may only use interfaces to map results to non-entity types. "
@@ -362,9 +362,9 @@ public class CustomQueryMethodsAdder extends AbstractMethodsAdder {
         return sort;
     }
 
-    // Make sure the return type is referencing a class we have indexed 
+    // Make sure the return type is referencing a class we have indexed
     // somewhere along the way (e.g. non-entity return types in @Query methods)
-    // Unless it is some kind of collection containing multiple types, 
+    // Unless it is some kind of collection containing multiple types,
     // return the type used in the query result.
     private Type verifyQueryResultType(Type t) {
         if (t.kind() == Kind.ARRAY) {
@@ -437,7 +437,7 @@ public class CustomQueryMethodsAdder extends AbstractMethodsAdder {
                 .interfaces(interfaceName.toString()).className(implName.toString())
                 .build()) {
 
-            Map<String, FieldDescriptor> fields = new HashMap<>(3);
+            Map<String, FieldDescriptor> fields = new LinkedHashMap<>(3);
 
             for (MethodInfo method : interfaceInfo.methods()) {
                 String getterName = method.name();

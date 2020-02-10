@@ -3,8 +3,8 @@ package io.quarkus.spring.data.deployment.generate;
 import java.lang.reflect.Modifier;
 import java.util.AbstractMap;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -75,7 +75,7 @@ public class SpringDataRepositoryCreator {
             }
         }
 
-        Map<String, FieldDescriptor> fragmentImplNameToFieldDescriptor = new HashMap<>();
+        Map<String, FieldDescriptor> fragmentImplNameToFieldDescriptor = new LinkedHashMap<>();
         String repositoryToImplementStr = repositoryToImplement.name().toString();
         String generatedClassName = repositoryToImplementStr + "_" + HashUtil.sha1(repositoryToImplementStr) + "Impl";
         try (ClassCreator classCreator = ClassCreator.builder().classOutput(classOutput)
@@ -151,7 +151,7 @@ public class SpringDataRepositoryCreator {
 
     private void createCustomImplFields(ClassCreator repositoryImpl, List<DotName> customInterfaceNamesToImplement,
             IndexView index, Map<String, FieldDescriptor> customImplNameToFieldDescriptor) {
-        Set<String> customImplClassNames = new HashSet<>(customInterfaceNamesToImplement.size());
+        Set<String> customImplClassNames = new LinkedHashSet<>(customInterfaceNamesToImplement.size());
 
         // go through the interfaces and collect the implementing classes in a Set
         // this is done because it is possible for an implementing class to implement multiple fragments

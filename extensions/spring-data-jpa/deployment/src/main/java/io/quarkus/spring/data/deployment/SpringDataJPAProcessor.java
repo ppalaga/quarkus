@@ -3,8 +3,8 @@ package io.quarkus.spring.data.deployment;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -45,7 +45,7 @@ public class SpringDataJPAProcessor {
 
     @BuildStep
     IgnorableNonIndexedClasses ignorable() {
-        Set<String> ignorable = new HashSet<>();
+        Set<String> ignorable = new LinkedHashSet<>();
         ignorable.add(Auditable.class.getName());
         ignorable.add(Persistable.class.getName());
         return new IgnorableNonIndexedClasses(ignorable);
@@ -111,7 +111,7 @@ public class SpringDataJPAProcessor {
 
         // index the Spring Data repository interfaces that extend Repository because we need to pull the generic types from it
         Indexer indexer = new Indexer();
-        Set<DotName> additionalIndex = new HashSet<>();
+        Set<DotName> additionalIndex = new LinkedHashSet<>();
         indexRepositoryInterface(index, indexer, additionalIndex, Repository.class);
         indexRepositoryInterface(index, indexer, additionalIndex, CrudRepository.class);
         indexRepositoryInterface(index, indexer, additionalIndex, PagingAndSortingRepository.class);
