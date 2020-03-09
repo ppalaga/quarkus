@@ -34,6 +34,8 @@ import io.quarkus.runtime.BannerRuntimeConfig;
 public class BannerProcessor {
 
     private static final Logger logger = Logger.getLogger(BannerProcessor.class);
+    private static String quarkusCoreBannerUrl = null;
+    private static final Object quarkusCoreBannerUrlLock = new Object();
 
     @BuildStep(loadsApplicationClasses = true, onlyIfNot = { IsTest.class })
     @Record(ExecutionTime.RUNTIME_INIT)
@@ -105,18 +107,29 @@ public class BannerProcessor {
             return false;
         }
 
-        // We determine whether the banner is the default by checking to see if the jar that contains it also
-        // contains this class. This way although somewhat complicated guarantees that any rename of artifacts
-        // won't affect the check
-        try (FileSystem fileSystem = FileSystems.newFileSystem(url.toURI(), Collections.emptyMap())) {
-            String thisClassName = this.getClass().getName();
-            String[] parts = thisClassName.split("\\.");
-            List<String> rest = new ArrayList<>(parts.length - 1);
-            rest.addAll(Arrays.asList(parts).subList(1, parts.length - 1));
-            rest.add(parts[parts.length - 1] + ".class");
-            return Files.exists(fileSystem.getPath(parts[0], rest.toArray(new String[] {})));
-        } catch (URISyntaxException e) {
-            return false;
+        synchronized (quarkusCoreBannerUrlLock) {
+            if (quarkusCoreBannerUrl != null) {
+                return url.toString().equals(quarkusCoreBannerUrl);
+            } else {
+                // We determine whether the banner is the default by checking to see if the jar that contains it also
+                // contains this class. This way although somewhat complicated guarantees that any rename of artifacts
+                // won't affect the check
+                try (FileSystem fileSystem = FileSystems.newFileSystem(url.toURI(), Collections.emptyMap())) {
+                    String thisClassName = this.getClass().getName();
+                    String[] parts = thisClassName.split("\\.");
+                    List<String> rest = new ArrayList<>(parts.length - 1);
+                    rest.addAll(Arrays.asList(parts).subList(1, parts.length - 1));
+                    rest.add(parts[parts.length - 1] + ".class");
+                    final boolean isQuarkusCoreBanner = Files
+                            .exists(fileSystem.getPath(parts[0], rest.toArray(new String[] {})));
+                    if (isQuarkusCoreBanner) {
+                        quarkusCoreBannerUrl = url.toString();
+                    }
+                    return isQuarkusCoreBanner;
+                } catch (URISyntaxException e) {
+                    throw new RuntimeException("Invalid URI " + url, e);
+                }
+            }
         }
     }
 }
