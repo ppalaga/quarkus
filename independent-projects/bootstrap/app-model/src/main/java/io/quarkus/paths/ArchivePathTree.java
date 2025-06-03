@@ -244,10 +244,17 @@ public class ArchivePathTree extends PathTreeWithManifest implements PathTree {
 
         private volatile boolean open = true;
 
+        protected final String fsString;
+
         protected OpenArchivePathTree(FileSystem fs) {
             super(ArchivePathTree.this.pathFilter, ArchivePathTree.this);
             this.fs = fs;
             this.rootPath = fs.getPath("/");
+            this.fsString = fs.toString();
+            //            if (fsString.contains("/httpclient-")) {
+            //                new RuntimeException("===== new OpenArchivePathTree " + System.identityHashCode(this) + "@"
+            //                        + Thread.currentThread().getName() + " " + fsString).printStackTrace();
+            //            }
         }
 
         @Override
@@ -382,8 +389,15 @@ public class ArchivePathTree extends PathTreeWithManifest implements PathTree {
             if (open) {
                 return;
             }
-            throw new RuntimeException("Failed to access " + ArchivePathTree.this.getRoots()
-                    + " because the FileSystem has been closed");
+
+            //            if (fsString.contains("/httpclient-")) {
+            //                new RuntimeException("===== not open OpenArchivePathTree " + System.identityHashCode(this) + "@"
+            //                        + Thread.currentThread().getName() + " " + fsString).printStackTrace();
+            //            }
+
+            throw new RuntimeException(
+                    "Failed to access " + System.identityHashCode(this) + " " + ArchivePathTree.this.getRoots()
+                            + " because the FileSystem has been closed");
         }
 
         @Override
@@ -393,6 +407,12 @@ public class ArchivePathTree extends PathTreeWithManifest implements PathTree {
                 open = false;
                 rootPath = null;
                 fs.close();
+
+                //                if (fsString.contains("/httpclient-")) {
+                //                    new RuntimeException("===== closing OpenArchivePathTree " + System.identityHashCode(this) + "@"
+                //                            + Thread.currentThread().getName() + " " + fsString).printStackTrace();
+                //                }
+
             } catch (IOException e) {
                 throw e;
             } finally {

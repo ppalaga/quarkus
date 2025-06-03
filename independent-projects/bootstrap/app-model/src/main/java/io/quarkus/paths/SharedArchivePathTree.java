@@ -60,11 +60,11 @@ class SharedArchivePathTree extends ArchivePathTree {
             }
         }
         try {
-            this.lastOpen = new SharedOpenArchivePathTree(openFs());
+            lastOpen = this.lastOpen = new SharedOpenArchivePathTree(openFs());
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
-        return new CallerOpenPathTree(this.lastOpen);
+        return new CallerOpenPathTree(lastOpen);
     }
 
     private class SharedOpenArchivePathTree extends OpenArchivePathTree {
@@ -142,6 +142,10 @@ class SharedArchivePathTree extends ArchivePathTree {
 
         private CallerOpenPathTree(SharedOpenArchivePathTree delegate) {
             this.delegate = delegate;
+            if (delegate == null) {
+                System.out.println("===== CallerOpenPathTree.delegate is null");
+            }
+
         }
 
         @Override

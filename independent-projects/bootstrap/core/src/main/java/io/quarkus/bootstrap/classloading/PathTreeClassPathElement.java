@@ -48,6 +48,11 @@ public class PathTreeClassPathElement extends AbstractClassPathElement {
         this.lock = new ReentrantReadWriteLock();
         this.runtime = runtime;
         this.resolvedDependency = resolvedDependency;
+
+        //        if (resolvedDependency != null && resolvedDependency.getArtifactId().equals("httpclient")) {
+        //            new RuntimeException("==== new PathTreeClassPathElement " + System.identityHashCode(this)).printStackTrace();
+        //        }
+
     }
 
     @Override
@@ -199,6 +204,10 @@ public class PathTreeClassPathElement extends AbstractClassPathElement {
     @Override
     public void close() throws IOException {
         lock.writeLock().lock();
+        //        if (resolvedDependency != null && resolvedDependency.getArtifactId().equals("httpclient")) {
+        //            new RuntimeException("==== closing PathTreeClassPathElement " + System.identityHashCode(this) + " with pathTree "
+        //                    + pathTree.getClass().getName()).printStackTrace();
+        //        }
         resources = null;
         try {
             pathTree.close();
@@ -315,6 +324,9 @@ public class PathTreeClassPathElement extends AbstractClassPathElement {
                             Thread.currentThread().interrupt();
                             return bytes;
                         } catch (ClosedChannelException e) {
+
+                            //                            new RuntimeException("===== ClosedChannelException for path " + path, e).printStackTrace();
+
                             // This could happen in tests or dev mode when the application is being terminated
                             // while some threads are still trying to load classes.
                             // Reset the interrupted status and try completing the operation by reading from a newly open archive
