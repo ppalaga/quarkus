@@ -87,14 +87,19 @@ public class ReflectiveHierarchyStep {
                 if (unindexedClassesWarn.length() != 0) {
                     unindexedClassesWarn.append("\n");
                 }
-                unindexedClassesWarn.append("\t- ").append(unindexedClassEntry.getKey());
-                unindexedClassesWarn.append(" (source");
+                final DotName dotName = unindexedClassEntry.getKey();
+                unindexedClassesWarn.append("\t- ").append(dotName);
+                try {
+                    Class.forName(dotName.toString(), false, Thread.currentThread().getContextClassLoader());
+                } catch (ClassNotFoundException e) {
+                    unindexedClassesWarn.append(" <--------- UNAVAILABLE IN TCCL");
+                }
+                unindexedClassesWarn.append(", source");
                 if (unindexedClassEntry.getValue().size() > 1) {
                     unindexedClassesWarn.append("s");
                 }
-                unindexedClassesWarn.append(": ");
-                unindexedClassesWarn.append(String.join(", ", unindexedClassEntry.getValue().toArray(new String[0])));
-                unindexedClassesWarn.append(")");
+                unindexedClassesWarn.append(":");
+                unindexedClassEntry.getValue().forEach(item -> unindexedClassesWarn.append("\n\t\t- ").append(item));
             }
             log.warnf(
                     "Unable to properly register the hierarchy of the following classes for reflection as they are not in the Jandex index:%n%s"
@@ -125,7 +130,7 @@ public class ReflectiveHierarchyStep {
             Set<DotName> processedReflectiveHierarchies, Map<DotName, Set<String>> unindexedClasses,
             BuildProducer<ReflectiveClassBuildItem> reflectiveClass,
             Deque<ReflectiveHierarchyVisitor> visits) {
-        final String newSource = source + " > " + type.name().toString();
+        final String newSource = source + type.name().toString();
         if (type instanceof VoidType ||
                 type instanceof PrimitiveType ||
                 type instanceof UnresolvedTypeVariable ||
@@ -144,7 +149,7 @@ public class ReflectiveHierarchyStep {
 
             for (ClassInfo subclass : combinedIndexBuildItem.getIndex().getAllKnownSubclasses(type.name())) {
                 addClassTypeHierarchy(nativeConfig, combinedIndexBuildItem, capabilities, reflectiveHierarchyBuildItem,
-                        newSource,
+                        newSource + "\n\t\t\t-subclass-> " + subclass.name().toString(),
                         subclass.name(),
                         subclass.name(),
                         processedReflectiveHierarchies,
@@ -152,7 +157,7 @@ public class ReflectiveHierarchyStep {
             }
             for (ClassInfo subclass : combinedIndexBuildItem.getIndex().getAllKnownImplementors(type.name())) {
                 addClassTypeHierarchy(nativeConfig, combinedIndexBuildItem, capabilities, reflectiveHierarchyBuildItem,
-                        newSource,
+                        newSource + "\n\t\t\t-implementor-> " + subclass.name().toString(),
                         subclass.name(),
                         subclass.name(),
                         processedReflectiveHierarchies,
@@ -160,7 +165,8 @@ public class ReflectiveHierarchyStep {
             }
         } else if (type instanceof ArrayType) {
             visits.addLast(() -> addReflectiveHierarchy(nativeConfig, combinedIndexBuildItem, capabilities,
-                    reflectiveHierarchyBuildItem, newSource,
+                    reflectiveHierarchyBuildItem,
+                    newSource + "\n\t\t\t-array-constituent-> ",
                     type.asArrayType().constituent(),
                     processedReflectiveHierarchies,
                     unindexedClasses, reflectiveClass, visits));
@@ -177,7 +183,7 @@ public class ReflectiveHierarchyStep {
                 visits.addLast(
                         () -> addReflectiveHierarchy(nativeConfig, combinedIndexBuildItem, capabilities,
                                 reflectiveHierarchyBuildItem,
-                                newSource,
+                                newSource + "\n\t\t\t-type-arg-> ",
                                 typeArgument,
                                 processedReflectiveHierarchies,
                                 unindexedClasses, reflectiveClass, visits));
@@ -206,8 +212,7 @@ public class ReflectiveHierarchyStep {
                 : combinedIndexBuildItem.getIndex()).getClassByName(name);
 
         if (info == null) {
-            unindexedClasses.putIfAbsent(name, new TreeSet<>());
-            unindexedClasses.get(name).add(source);
+            unindexedClasses.computeIfAbsent(name, k -> new TreeSet<>()).add(source);
         }
 
         if (processedReflectiveHierarchies.contains(name)) {
@@ -233,14 +238,15 @@ public class ReflectiveHierarchyStep {
         }
 
         visits.addLast(() -> addClassTypeHierarchy(nativeConfig, combinedIndexBuildItem, capabilities,
-                reflectiveHierarchyBuildItem, source,
+                reflectiveHierarchyBuildItem, source + "\n\t\t\t-superclass-> " + info.superName(),
                 info.superName(), initialName,
                 processedReflectiveHierarchies,
                 unindexedClasses, reflectiveClass, visits));
         for (Type interfaceType : info.interfaceTypes()) {
             visits.addLast(() -> addReflectiveHierarchy(nativeConfig, combinedIndexBuildItem, capabilities,
                     reflectiveHierarchyBuildItem,
-                    source, interfaceType, processedReflectiveHierarchies, unindexedClasses,
+                    source + "\n\t\t\t-interface-> ",
+                    interfaceType, processedReflectiveHierarchies, unindexedClasses,
                     reflectiveClass, visits));
         }
         for (FieldInfo field : info.fields()) {
@@ -254,7 +260,8 @@ public class ReflectiveHierarchyStep {
             final Type fieldType = getFieldType(combinedIndexBuildItem, initialName, info, field);
             visits.addLast(
                     () -> addReflectiveHierarchy(nativeConfig, combinedIndexBuildItem, capabilities,
-                            reflectiveHierarchyBuildItem, source,
+                            reflectiveHierarchyBuildItem,
+                            source + "\n\t\t\t-field:" + field.name() + "-> ",
                             fieldType,
                             processedReflectiveHierarchies,
                             unindexedClasses, reflectiveClass, visits));
@@ -268,7 +275,8 @@ public class ReflectiveHierarchyStep {
                 continue;
             }
             visits.addLast(() -> addReflectiveHierarchy(nativeConfig, combinedIndexBuildItem, capabilities,
-                    reflectiveHierarchyBuildItem, source,
+                    reflectiveHierarchyBuildItem,
+                    source + "\n\t\t\t-method-return:" + method.name() + "()-> ",
                     method.returnType(),
                     processedReflectiveHierarchies,
                     unindexedClasses, reflectiveClass, visits));
@@ -278,7 +286,8 @@ public class ReflectiveHierarchyStep {
         if (!reflectiveHierarchyBuildItem.isIgnoreNested()
                 || (capabilities.isPresent(Capability.KOTLIN) && isKotlinClass(info))) {
             for (DotName memberClassName : info.memberClasses()) {
-                addClassTypeHierarchy(nativeConfig, combinedIndexBuildItem, capabilities, reflectiveHierarchyBuildItem, source,
+                addClassTypeHierarchy(nativeConfig, combinedIndexBuildItem, capabilities, reflectiveHierarchyBuildItem,
+                        source + "\n\t\t\t-memberClass-> ",
                         memberClassName, memberClassName, processedReflectiveHierarchies, unindexedClasses,
                         reflectiveClass, visits);
             }

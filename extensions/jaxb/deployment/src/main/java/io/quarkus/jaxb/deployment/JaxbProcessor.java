@@ -217,6 +217,7 @@ public class JaxbProcessor {
                         && !JAXB_ANNOTATIONS.contains(jaxbRootAnnotationInstance.target().asClass().getClass())) {
                     ClassInfo targetClassInfo = jaxbRootAnnotationInstance.target().asClass();
                     final var name = targetClassInfo.name();
+                    LOG.warn("===== name " + name);
 
                     reflectiveHierarchies.produce(ReflectiveHierarchyBuildItem
                             .builder(name)
@@ -225,7 +226,7 @@ public class JaxbProcessor {
                                     || IGNORE_TYPES.contains(t))
                             .ignoreFieldPredicate(JaxbProcessor::isFieldIgnored)
                             .ignoreMethodPredicate(JaxbProcessor::isMethodIgnored)
-                            .source(getClass().getSimpleName() + " annotated with @" + jaxbRootAnnotation + " > " + name)
+                            .source(getClass().getSimpleName() + " annotated with @" + jaxbRootAnnotation + "\n\t\t\t-> ")
                             .build());
                     classesToBeBound.add(targetClassInfo.name().toString());
                     jaxbRootAnnotationsDetected = true;
