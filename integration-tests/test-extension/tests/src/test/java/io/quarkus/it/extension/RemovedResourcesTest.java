@@ -6,13 +6,12 @@ import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
 
 import io.quarkus.extest.runtime.RemovedResource;
-import io.quarkus.test.junit.QuarkusTest;
 import io.restassured.RestAssured;
 
-@QuarkusTest
+//@QuarkusTest
 public class RemovedResourcesTest {
     String getHost() {
-        return ""; // default host configured for RestAssured
+        return "http://localhost:8080";
     }
 
     @Test
